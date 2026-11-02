@@ -16,11 +16,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MenuListMixin {
     @Inject(method = "renderListBackground", at = @At("HEAD"), cancellable = true)
     private void orbit$listBackground(GuiGraphics g, CallbackInfo ci) {
-        if (GlassMenu.selectionScreen()) ci.cancel();
+        if (GlassMenu.active()) ci.cancel();
     }
     @Inject(method = "renderListSeparators", at = @At("HEAD"), cancellable = true)
     private void orbit$separators(GuiGraphics g, CallbackInfo ci) {
-        if (GlassMenu.selectionScreen()) ci.cancel();
+        if (GlassMenu.active()) ci.cancel();
     }
     @Inject(method = "renderItem", at = @At("HEAD"))
     private void orbit$card(GuiGraphics g, int mouseX, int mouseY, float delta,

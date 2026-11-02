@@ -11,7 +11,14 @@
     "CycleButtonAccessor",
     "MenuBackdropMixin",
     "MenuListMixin",
-    "MenuEditBoxMixin"
+    "MenuEditBoxMixin",
+    "MenuFontMixin",
+    "MenuSliderMixin",
+    "MenuScrollMixin",
+    "MenuCheckboxMixin",
+    "MenuTabMixin",
+    "MenuSeparatorMixin",
+    "MenuMessageMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -24,8 +24,20 @@ public abstract class MenuBackdropMixin {
     private static void orbit$glassList(GuiGraphics graphics, Identifier texture, int x, int y,
                                         float u, float v, int width, int height, CallbackInfo ci) {
         if (!GlassMenu.active()) return;
-        if (GlassMenu.selectionScreen()) { ci.cancel(); return; }
-        GlassMenu.panel(graphics, x, y, width, height, 10, 0x60150b2c, 0x25ffffff);
+        // A single screen panel replaces the old full-width header/list strips.
         ci.cancel();
     }
+    @Inject(method = "renderPanorama", at = @At("HEAD"), cancellable = true)
+    private void orbit$loadingBackdrop(GuiGraphics g, float delta, CallbackInfo ci) {
+        if (!GlassMenu.active()) return;
+        Screen self = (Screen) (Object) this;
+        GlassMenu.backdrop(g, self.width, self.height);
+        GlassMenu.screenPanel(g, self.width, self.height);
+        ci.cancel();
+    }
+    @Inject(method = "renderBlurredBackground", at = @At("HEAD"), cancellable = true)
+    private void orbit$keepCloudsSharp(GuiGraphics g, CallbackInfo ci) {
+        if (GlassMenu.active()) ci.cancel();
+    }
+
 }

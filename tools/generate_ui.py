@@ -22,8 +22,10 @@ def distance(x, y, size, radius, margin=0):
 
 sprites = ASSETS / 'textures/gui/sprites/ui'
 sprites.mkdir(parents=True, exist_ok=True)
-for kind in ('surface', 'border', 'shadow'):
+for kind in ('surface', 'border', 'shadow', 'surface_small', 'border_small'):
     size = 64
+    base_kind = kind.removesuffix('_small')
+    radius = 3 if kind.endswith('_small') else 10
     data = bytearray()
     for y in range(size):
         for x in range(size):
@@ -31,19 +33,19 @@ for kind in ('surface', 'border', 'shadow'):
             for sy in range(4):
                 for sx in range(4):
                     px, py = x+(sx+.5)/4, y+(sy+.5)/4
-                    d = distance(px, py, size, 10, 6 if kind == 'shadow' else 0)
+                    d = distance(px, py, size, radius, 6 if kind == 'shadow' else 0)
                     if kind == 'shadow': a = .28 * math.exp(-max(0, d)**2/12)
-                    elif kind == 'border': a = 1.0 if -1 <= d <= 0 else 0.0
+                    elif base_kind == 'border': a = 1.0 if -1 <= d <= 0 else 0.0
                     else: a = 1.0 if d <= 0 else 0.0
                     alpha += a/16
-            shade = round(255 - 22*y/(size-1)) if kind == 'surface' else 255
+            shade = round(255 - 22*y/(size-1)) if base_kind == 'surface' else 255
             data.extend((0, 0, 0, round(alpha*255)) if kind == 'shadow' else (shade, shade, shade, round(alpha*255)))
     target = sprites / (kind + '.png')
     png(target, size, data)
-    target.with_suffix('.png.mcmeta').write_text(json.dumps({'gui': {'scaling': {'type': 'nine_slice', 'width': size, 'height': size, 'border': 16 if kind == 'shadow' else 10, 'stretch_inner': True}}}, indent=2)+'\n')
+    target.with_suffix('.png.mcmeta').write_text(json.dumps({'gui': {'scaling': {'type': 'nine_slice', 'width': size, 'height': size, 'border': 16 if kind == 'shadow' else radius, 'stretch_inner': True}}}, indent=2)+'\n')
 font = ASSETS / 'font'
 font.mkdir(exist_ok=True)
-(font/'LICENSE.txt').write_text((ROOT/'tools/assets/LICENSE').read_text())
+(font/'license.txt').write_text((ROOT/'tools/assets/LICENSE').read_text())
 (font/'ui.ttf').write_bytes(base64.b64decode((ROOT/'tools/assets/orbit-ui.ttf.b64').read_bytes()))
-(font/'ui.json').write_text(json.dumps({'providers':[{'type':'ttf','file':'orbit:font/ui.ttf','shift':[0,1],'size':10,'oversample':3.0},{'type':'reference','id':'minecraft:default'}]}, indent=2)+'\n')
-print('Generated 3 antialiased nine-slice sprites and Orbit UI font (Latin + Cyrillic).')
+(font/'ui.json').write_text(json.dumps({'providers':[{'type':'ttf','file':'orbit:ui.ttf','shift':[0,1],'size':10,'oversample':3.0},{'type':'reference','id':'minecraft:default'}]}, indent=2)+'\n')
+print('Generated 5 antialiased nine-slice sprites and Orbit UI font (Latin + Cyrillic).')

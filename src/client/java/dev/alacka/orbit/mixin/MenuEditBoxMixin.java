@@ -2,6 +2,8 @@ package dev.alacka.orbit.mixin;
 
 import dev.alacka.orbit.menu.GlassMenu;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.Font;
+import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -20,4 +22,10 @@ public abstract class MenuEditBoxMixin {
         GlassMenu.panel(g, x, y, width, height, 8, 0xb31c1626,
                 self.isFocused() ? 0xe3be94f0 : 0x506d587f);
     }
+    @Redirect(method = "renderWidget", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)V"))
+    private void orbit$readableHint(GuiGraphics g, Font font, Component hint, int x, int y, int color) {
+        if (!GlassMenu.active()) { g.drawString(font, hint, x, y, color); return; }
+        g.drawString(font, hint.copy().withStyle(style -> style.withColor(0xbfb0d1)), x, y, 0xffbfb0d1, false);
+    }
+
 }
