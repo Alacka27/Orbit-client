@@ -3,7 +3,7 @@
   "id": "orbit",
   "version": "${version}",
   "name": "Orbit",
-  "description": "Blue square-Earth main menu and hold-to-look camera. Preview; other planned modules are not implemented.",
+  "description": "Cloud glass menus with the supplied Orbit logo and hold-to-look camera. Other planned modules are not implemented.",
   "icon": "assets/orbit/icon.png",
   "authors": [
     "Alacka27"

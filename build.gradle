@@ -28,8 +28,14 @@ def generateOrbitIcon = tasks.register('generateOrbitIcon', Exec) {
     commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_icon.py'
 }
 
+def generateOrbitWallpaper = tasks.register('generateOrbitWallpaper', Exec) {
+    inputs.file('tools/generate_wallpaper.py')
+    outputs.file('src/main/resources/assets/orbit/clouds.png')
+    commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_wallpaper.py'
+}
+
 processResources {
-    dependsOn generateOrbitIcon
+    dependsOn generateOrbitIcon, generateOrbitWallpaper
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') {
         expand version: project.version

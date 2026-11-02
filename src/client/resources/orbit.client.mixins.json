@@ -6,7 +6,9 @@
     "CameraMixin",
     "MouseHandlerMixin",
     "TitleScreenMixin",
-    "MenuButtonMixin"
+    "MenuButtonMixin",
+    "CycleButtonAccessor",
+    "MenuBackdropMixin"
   ],
   "injectors": {
     "defaultRequire": 1

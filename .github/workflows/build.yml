@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Test and build blue menu preview
+    name: Test and build cloud glass preview
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -40,6 +40,8 @@ jobs:
         run: bash scripts/test-freelook.sh
       - name: Check supplied logo and menu layout
         run: python3 tools/test_menu_assets.py
+      - name: Test glass panel geometry
+        run: python3 tools/test_glass.py
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -54,15 +56,18 @@ jobs:
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.3.1-logo.jar')
-          expected = ['CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin']
+          jar = Path('build/libs/orbit-0.4.0-clouds.jar')
+          expected = ['CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
               icon = archive.read(info['icon'])
               assert icon[:8] == b'\x89PNG\r\n\x1a\n', 'Missing or invalid icon'
               assert struct.unpack('>II', icon[16:24]) == (512, 512)
+              wallpaper = archive.read('assets/orbit/clouds.png')
+              assert wallpaper[:8] == b'\x89PNG\r\n\x1a\n'
+              assert struct.unpack('>II', wallpaper[16:24]) == (1600, 900)
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.3.1-logo', info
+              assert info['version'] == '0.4.0-clouds', info
               assert info['depends']['minecraft'] == '1.21.11', info
               assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
               mixins = json.loads(archive.read('orbit.client.mixins.json'))
@@ -72,7 +77,8 @@ jobs:
               required = ['dev/alacka/orbit/OrbitClient.class',
                           'dev/alacka/orbit/freelook/FreeLookController.class',
                           'dev/alacka/orbit/freelook/FreeLookState.class',
-                          'dev/alacka/orbit/menu/OrbitMenu.class']
+                          'dev/alacka/orbit/menu/OrbitMenu.class',
+                          'dev/alacka/orbit/menu/GlassMenu.class']
               required += ['dev/alacka/orbit/mixin/' + name + '.class' for name in expected]
               for name in required:
                   assert name in archive.namelist(), name
@@ -82,11 +88,11 @@ jobs:
                       assert magic == 0xCAFEBABE and major == 65, (name, major)
           print('Menu/icon/FreeLook, Java 21 bytecode and Mixin metadata verified:', jar)
           print('Actual Mixin application and camera behaviour still require an in-game test.')
-      - name: Upload blue menu preview jar
+      - name: Upload cloud glass preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.3.1-logo
-          path: build/libs/orbit-0.3.1-logo.jar
+          name: orbit-1.21.11-0.4.0-clouds
+          path: build/libs/orbit-0.4.0-clouds.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result
@@ -96,4 +102,4 @@ jobs:
         run: |
           printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
           echo 'Build JVM: Java 25. Mod bytecode target: Java 21.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Blue main menu and FreeLook preview. Theme editor and other planned modules are not implemented. A successful build is not an in-game test.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Cloud glass menu and FreeLook preview. Theme editor and other planned modules are not implemented. A successful build is not an in-game test.' >> "$GITHUB_STEP_SUMMARY"

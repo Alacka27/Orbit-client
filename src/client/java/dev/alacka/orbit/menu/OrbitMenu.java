@@ -110,6 +110,8 @@ public final class OrbitMenu {
     }
 
     public void setFallback(Button button) { fallback = button; }
+    public static boolean isEnabled() { return enabled; }
+    public static boolean isAnimated() { return animation; }
     public static void useVanillaForSession() { enabled = false; current = null; }
     private void hideUnmanaged() {
         for (var child : screen.children()) {
@@ -122,28 +124,12 @@ public final class OrbitMenu {
     public void renderBackground(GuiGraphics g) {
         hideUnmanaged();
         int w = screen.width, h = screen.height;
-        for (int y = 0; y < h; y += 4) {
-            double t = (double) y / h;
-            int red = (int) (7 - 4 * t), green = (int) (20 - 11 * t), blue = (int) (41 - 20 * t);
-            g.fill(0, y, w, Math.min(y + 4, h), 0xff000000 | red << 16 | green << 8 | blue);
-        }
-        double time = animation ? System.nanoTime() / 1_000_000_000.0 : 0;
-        // Deliberately subtle, deterministic star field; no network or random allocations.
-        for (int i = 0; i < 36; i++) {
-            int x = (i * 97 + 29) % w, y = (i * 53 + 17) % h;
-            int alpha = 45 + (int) (20 * Math.sin(time * 0.5 + i));
-            g.fill(x, y, x + 1, y + 1, alpha << 24 | 0x72acff);
-        }
-        double angle = -0.28 + Math.sin(time * 0.08) * 0.035;
-        int lastX = 0, lastY = 0;
-        for (int i = 0; i <= 180; i++) {
-            double a = i * Math.PI * 2 / 180;
-            double x = Math.cos(a) * w * 0.47, y = Math.sin(a) * h * 0.30;
-            int px = (int) (w / 2.0 + x * Math.cos(angle) - y * Math.sin(angle));
-            int py = (int) (h * 0.44 + x * Math.sin(angle) + y * Math.cos(angle));
-            if (i > 0) drawLine(g, lastX, lastY, px, py, 0x203d8df2);
-            lastX = px; lastY = py;
-        }
+        GlassMenu.backdrop(g, w, h);
+        int panelWidth = buttons.get(0).getWidth() + 28;
+        int bottom = buttons.get(buttons.size() - 1).getY() + buttons.get(buttons.size() - 1).getHeight();
+        int panelBottom = Math.min(bottom + 12, h - 31);
+        GlassMenu.panel(g, (w - panelWidth) / 2, top - 4, panelWidth, panelBottom - (top - 4),
+                14, 0x60180c35, 0x1dffffff);
         int logoX = (w - logoSize) / 2;
         g.blit(RenderPipelines.GUI_TEXTURED, ICON, logoX, top, 0f, 0f,
                 logoSize, logoSize, 512, 512, 512, 512, 0xffffffff);
@@ -152,26 +138,17 @@ public final class OrbitMenu {
         g.drawCenteredString(Minecraft.getInstance().font, "O R B I T", w / 4, (top + logoSize + 1) / 2, 0xffe3efff);
         g.pose().popMatrix();
         g.drawCenteredString(Minecraft.getInstance().font, "YOUR WORLD. YOUR ORBIT.", w / 2,
-                firstButtonY - 13, 0xff8ba6ce);
+                firstButtonY - 13, 0xffded3f5);
         var font = Minecraft.getInstance().font;
         String user = Minecraft.getInstance().getUser().getName();
         int maxWidth = Math.max(40, (w - logoSize) / 2 - 24);
         while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
-        g.drawString(font, user, w - font.width(user) - 12, 12, 0xffb9d7ff, false);
-        g.fill(12, 12, 15, 21, 0xff409cff);
-        g.drawString(font, "ORBIT / 0.3.1", 21, 12, 0xff86acdf, false);
-        g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xff8198b8, false);
+        g.drawString(font, user, w - font.width(user) - 12, 12, 0xfff0eaff, false);
+        g.fill(12, 12, 15, 21, 0xffdebdff);
+        g.drawString(font, "ORBIT / 0.4.0", 21, 12, 0xffe8ddfa, false);
+        g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xffeee7fa, false);
         String rights = "Not affiliated with Mojang";
-        g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xff8198b8, false);
-    }
-
-    private static void drawLine(GuiGraphics g, int x1, int y1, int x2, int y2, int color) {
-        int steps = Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1));
-        for (int i = 0; i <= steps; i++) {
-            double t = steps == 0 ? 0 : (double) i / steps;
-            int x = (int) (x1 + (x2 - x1) * t), y = (int) (y1 + (y2 - y1) * t);
-            g.fill(x, y, x + 1, y + 1, color);
-        }
+        g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xffeee7fa, false);
     }
 
     public static boolean drawButton(GuiGraphics g, AbstractButton button) {
@@ -179,17 +156,7 @@ public final class OrbitMenu {
         if (menu == null || Minecraft.getInstance().screen != menu.screen) return false;
         int index = menu.buttons.indexOf(button);
         if (index < 0 && button != menu.fallback) return false;
-        boolean hover = button.active && button.isHoveredOrFocused();
-        boolean primary = index == 0;
-        int x = button.getX(), y = button.getY(), w = button.getWidth(), h = button.getHeight();
-        int border = hover ? 0xff88c8ff : primary ? 0xff438fe0 : 0xff284b76;
-        int fill = !button.active ? 0xff111e30 : primary
-                ? (hover ? 0xff2676c9 : 0xff1c5da8) : (hover ? 0xff173957 : 0xff0b2038);
-        g.fill(x, y, x + w, y + h, border);
-        g.fill(x + 1, y + 1, x + w - 1, y + h - 1, fill);
-        if (hover) g.fill(x + 1, y + 1, x + 3, y + h - 1, 0xff8cd5ff);
-        g.drawCenteredString(Minecraft.getInstance().font, button.getMessage(), x + w / 2,
-                y + (h - 8) / 2, button.active ? 0xffeef6ff : 0xff71829b);
+        GlassMenu.button(g, button, index == 0);
         return true;
     }
 }
