@@ -23,6 +23,7 @@ dependencies {
 
 def generateOrbitIcon = tasks.register('generateOrbitIcon', Exec) {
     inputs.file('tools/generate_icon.py')
+    inputs.file('tools/assets/orbit-logo.png.b64')
     outputs.file('src/main/resources/assets/orbit/icon.png')
     commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_icon.py'
 }

@@ -38,7 +38,7 @@ jobs:
         run: python3 .github/scripts/check_dependencies.py
       - name: Test FreeLook state and config
         run: bash scripts/test-freelook.sh
-      - name: Check original icon and menu layout
+      - name: Check supplied logo and menu layout
         run: python3 tools/test_menu_assets.py
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -54,7 +54,7 @@ jobs:
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.3.0-blue-menu.jar')
+          jar = Path('build/libs/orbit-0.3.1-logo.jar')
           expected = ['CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
@@ -62,7 +62,7 @@ jobs:
               assert icon[:8] == b'\x89PNG\r\n\x1a\n', 'Missing or invalid icon'
               assert struct.unpack('>II', icon[16:24]) == (512, 512)
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.3.0-blue-menu', info
+              assert info['version'] == '0.3.1-logo', info
               assert info['depends']['minecraft'] == '1.21.11', info
               assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
               mixins = json.loads(archive.read('orbit.client.mixins.json'))
@@ -85,8 +85,8 @@ jobs:
       - name: Upload blue menu preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.3.0-blue-menu
-          path: build/libs/orbit-0.3.0-blue-menu.jar
+          name: orbit-1.21.11-0.3.1-logo
+          path: build/libs/orbit-0.3.1-logo.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result

@@ -159,7 +159,7 @@ public final class OrbitMenu {
         while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
         g.drawString(font, user, w - font.width(user) - 12, 12, 0xffb9d7ff, false);
         g.fill(12, 12, 15, 21, 0xff409cff);
-        g.drawString(font, "ORBIT / 0.3.0", 21, 12, 0xff86acdf, false);
+        g.drawString(font, "ORBIT / 0.3.1", 21, 12, 0xff86acdf, false);
         g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xff8198b8, false);
         String rights = "Not affiliated with Mojang";
         g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xff8198b8, false);

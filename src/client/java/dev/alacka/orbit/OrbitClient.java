@@ -12,6 +12,6 @@ public final class OrbitClient implements ClientModInitializer {
     public void onInitializeClient() {
         FreeLookController.initialize();
         OrbitMenu.initialize();
-        LOGGER.info("[Orbit] 0.3.0 Blue menu and FreeLook initialized. Other planned modules are not implemented yet.");
+        LOGGER.info("[Orbit] 0.3.1 Blue menu and FreeLook initialized. Other planned modules are not implemented yet.");
     }
 }
