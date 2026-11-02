@@ -52,3 +52,8 @@ java {
     targetCompatibility = JavaVersion.VERSION_21
     withSourcesJar()
 }
+
+// sourcesJar also reads src/main/resources, including both generated images.
+tasks.named('sourcesJar') {
+    dependsOn generateOrbitIcon, generateOrbitWallpaper
+}
