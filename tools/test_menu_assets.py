@@ -35,10 +35,11 @@ cases=0
 for w in (320,360,426,640,854,1280):
  for h in (240,260,299,300,360,480,720):
   compact=h<300;logo=52 if compact else 82;button=22 if compact else 28
-  total=logo+39+button*4+18
-  top=max(8,(h-total-22)//2)
-  last=top+logo+39+3*(button+6)+button
-  assert last<=h-32,(w,h,last)
+  total=logo+39+button*3+12
+  top=max(8,(h-total-44)//2)
+  last=top+logo+39+2*(button+6)+button
+  assert last+12<=h-44,(w,h,last)
+  assert min(220,w-48)>=200
   assert (w-min(220,w-48))//2>=12
   cases+=1
 print('PASS: PNG signature, size, CRC, transparency, metadata path and',cases,'layout cases. In-game test required.')
