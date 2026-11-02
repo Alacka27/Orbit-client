@@ -58,8 +58,8 @@ jobs:
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.4.2-violet-glass.jar')
-          expected = ['MainProfileMixin', 'CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin', 'MenuListMixin', 'MenuEditBoxMixin']
+          jar = Path('build/libs/orbit-0.4.3-ui-fix.jar')
+          expected = ['MainProfileMixin', 'CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin', 'MenuListMixin', 'MenuEditBoxMixin', 'MenuFontMixin', 'MenuSliderMixin', 'MenuScrollMixin', 'MenuCheckboxMixin', 'MenuTabMixin', 'MenuSeparatorMixin', 'MenuMessageMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
               icon = archive.read(info['icon'])
@@ -69,11 +69,15 @@ jobs:
               assert wallpaper[:8] == b'\x89PNG\r\n\x1a\n'
               assert struct.unpack('>II', wallpaper[16:24]) == (1600, 900)
               assert 'assets/orbit/font/ui.ttf' in archive.namelist()
-              for sprite in ('surface', 'border', 'shadow'):
+              assert 'assets/orbit/font/license.txt' in archive.namelist()
+              font_info = json.loads(archive.read('assets/orbit/font/ui.json'))
+              namespace, font_file = font_info['providers'][0]['file'].split(':', 1)
+              assert 'assets/' + namespace + '/font/' + font_file in archive.namelist(), 'Broken Minecraft TTF resource path'
+              for sprite in ('surface', 'border', 'shadow', 'surface_small', 'border_small'):
                   assert 'assets/orbit/textures/gui/sprites/ui/' + sprite + '.png' in archive.namelist()
                   assert 'assets/orbit/textures/gui/sprites/ui/' + sprite + '.png.mcmeta' in archive.namelist()
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.4.2-violet-glass', info
+              assert info['version'] == '0.4.3-ui-fix', info
               assert info['depends']['minecraft'] == '1.21.11', info
               assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
               mixins = json.loads(archive.read('orbit.client.mixins.json'))
@@ -100,8 +104,8 @@ jobs:
       - name: Upload cloud glass preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.4.2-violet-glass
-          path: build/libs/orbit-0.4.2-violet-glass.jar
+          name: orbit-1.21.11-0.4.3-ui-fix
+          path: build/libs/orbit-0.4.3-ui-fix.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result

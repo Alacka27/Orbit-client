@@ -12,28 +12,31 @@ import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FontDescription;
-import net.minecraft.client.gui.components.AbstractSelectionList;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
 import net.minecraft.resources.Identifier;
 import dev.alacka.orbit.mixin.CycleButtonAccessor;
 import dev.alacka.orbit.profiles.ProfilesScreen;
 
-/** Lightweight translucent styling, not a blur/shader effect. No in-world GUI changes. */
+/** Unified menu theme. HUD, chat and inventory/container rendering remain untouched. */
 public final class GlassMenu {
     private static final Identifier CLOUDS = Identifier.fromNamespaceAndPath("orbit", "clouds.png");
     private static final Identifier SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/surface");
     private static final Identifier BORDER = Identifier.fromNamespaceAndPath("orbit", "ui/border");
+    private static final Identifier SMALL_SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/surface_small");
+    private static final Identifier SMALL_BORDER = Identifier.fromNamespaceAndPath("orbit", "ui/border_small");
     private static final Identifier SHADOW = Identifier.fromNamespaceAndPath("orbit", "ui/shadow");
-    private static final FontDescription UI_FONT = new FontDescription.Resource(Identifier.fromNamespaceAndPath("orbit", "ui"));
     private static final WeakHashMap<AbstractButton, Hover> HOVERS = new WeakHashMap<>();
     private static final class Hover { float value; long last; }
     private GlassMenu() {}
 
     public static boolean active() {
         Minecraft client = Minecraft.getInstance();
-        return OrbitMenu.isEnabled() && client.screen != null && client.level == null;
+        return OrbitMenu.isEnabled() && client.screen != null
+                && !(client.screen instanceof ChatScreen)
+                && !(client.screen instanceof AbstractContainerScreen<?>);
     }
 
     public static boolean supports(AbstractButton button) {
@@ -45,6 +48,10 @@ public final class GlassMenu {
     }
 
     public static void backdrop(GuiGraphics g, int width, int height) {
+        if (Minecraft.getInstance().level != null) {
+            g.fill(0, 0, width, height, 0xa6100b1a);
+            return;
+        }
         double scale = Math.max(width / 1600.0, height / 900.0);
         int w = (int) Math.ceil(1600 * scale), h = (int) Math.ceil(900 * scale);
         g.blit(RenderPipelines.GUI_TEXTURED, CLOUDS, (width - w) / 2, (height - h) / 2,
@@ -58,14 +65,15 @@ public final class GlassMenu {
     /** Antialiased nine-slice sprites keep their corner radius at every GUI scale. */
     public static void panel(GuiGraphics g, int x, int y, int width, int height, int radius, int fill, int border) {
         if (width <= 0 || height <= 0) return;
-        g.blitSprite(RenderPipelines.GUI_TEXTURED, SURFACE, x, y, width, height, fill);
-        g.blitSprite(RenderPipelines.GUI_TEXTURED, BORDER, x, y, width, height, border);
+        boolean small = Math.min(width, height) < 20 || radius <= 5;
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_SURFACE : SURFACE, x, y, width, height, fill);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_BORDER : BORDER, x, y, width, height, border);
     }
     public static void shadow(GuiGraphics g, int x, int y, int width, int height) {
         if (width > 0 && height > 0) g.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - 6, y - 4, width + 12, height + 12);
     }
     public static Component text(String label) {
-        return Component.literal(label).withStyle(style -> style.withFont(UI_FONT));
+        return Component.literal(label);
     }
     public static void text(GuiGraphics g, String label, int x, int y, int color) {
         g.drawString(Minecraft.getInstance().font, text(label), x, y, color, false);
@@ -75,14 +83,15 @@ public final class GlassMenu {
         return active() && (screen instanceof SelectWorldScreen || screen instanceof JoinMultiplayerScreen);
     }
     public static void screenPanel(GuiGraphics g, int width, int height) {
-        if (!selectionScreen()) return;
+        if (!active() || Minecraft.getInstance().screen instanceof TitleScreen
+                || Minecraft.getInstance().screen instanceof ProfilesScreen) return;
         int w = Math.min(width - 16, 552), x = (width - w) / 2;
         shadow(g, x, 7, w, height - 14);
         panel(g, x, 7, w, height - 14, 12, 0xd51c1528, 0x36d6c9ec);
     }
     public static void card(GuiGraphics g, net.minecraft.client.gui.layouts.LayoutElement entry, boolean selected, boolean hovered) {
         int fill = selected ? 0xb7503277 : hovered ? 0x98504461 : 0x70423850;
-        panel(g, entry.getX(), entry.getY(), entry.getWidth(), entry.getHeight() - 3, 8,
+        panel(g, entry.getX(), entry.getY(), entry.getWidth(), entry.getHeight() - 1, 5,
                 fill, selected ? 0xd0b38aeb : hovered ? 0x70cbb6e6 : 0x28ddd2ee);
     }
     private static int mix(int a, int b, float t) {
@@ -117,7 +126,7 @@ public final class GlassMenu {
         panel(g, button.getX(), button.getY(), button.getWidth(), button.getHeight(), 8, fill, border);
         var font = Minecraft.getInstance().font;
         String label = raw;
-        int available = Math.max(0, button.getWidth() - 18);
+        int available = Math.max(0, button.getWidth() - 12);
         if (font.width(text(label)) > available) {
             while (!label.isEmpty() && font.width(text(label + "…")) > available) label = label.substring(0, label.length() - 1);
             label += "…";
