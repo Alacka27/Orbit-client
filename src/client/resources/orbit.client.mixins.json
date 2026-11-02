@@ -9,7 +9,9 @@
     "TitleScreenMixin",
     "MenuButtonMixin",
     "CycleButtonAccessor",
-    "MenuBackdropMixin"
+    "MenuBackdropMixin",
+    "MenuListMixin",
+    "MenuEditBoxMixin"
   ],
   "injectors": {
     "defaultRequire": 1

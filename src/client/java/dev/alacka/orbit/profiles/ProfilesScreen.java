@@ -63,18 +63,20 @@ public final class ProfilesScreen extends Screen {
     }
     @Override public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
         renderBackground(g, mouseX, mouseY, delta);
-        GlassMenu.panel(g, left, top, panelWidth, panelHeight, 12, 0xd322152a, 0x45ffffff);
-        g.drawString(font, "Profiles", left + 12, top + 10, 0xffffffff, true);
+        GlassMenu.shadow(g, left, top, panelWidth, panelHeight);
+        GlassMenu.panel(g, left, top, panelWidth, panelHeight, 12, 0xe11e1729, 0x509c7db9);
+        GlassMenu.text(g, "Profiles", left + 12, top + 10, 0xffffffff);
+        GlassMenu.panel(g, left + 46, top + 48, panelWidth - 92, 26, 8, 0x754e346c, 0x709674bb);
         if (data != null) {
             String chosen = nameAt(index);
             String label = index == 0 ? "Launcher account" : chosen + " (offline)";
-            g.drawCenteredString(font, label, width / 2, top + 57, 0xffffffff);
+            g.drawString(font, GlassMenu.text(label), (width - font.width(GlassMenu.text(label))) / 2, top + 57, 0xfff6edff, false);
             String active = ProfileLaunch.active().equals(ProfileStore.LAUNCHER) ? "Launcher" : ProfileLaunch.active() + " (offline)";
             g.drawString(font, font.plainSubstrByWidth("Active: " + active, panelWidth - 24), left + 12, top + 27, 0xffd9cbdc, false);
             String next = data.selected().equals(ProfileStore.LAUNCHER) ? "Launcher" : data.selected() + " (offline)";
             g.drawString(font, font.plainSubstrByWidth("Next launch: " + next, panelWidth - 24), left + 12, top + 140, 0xffd9cbdc, false);
         }
-        g.drawString(font, font.plainSubstrByWidth(notice, panelWidth - 24), left + 12, top + 154, 0xffffc9d2, false);
+        g.drawString(font, font.plainSubstrByWidth(notice, panelWidth - 24), left + 12, top + 154, 0xffdab9ff, false);
         g.drawString(font, font.plainSubstrByWidth("Offline: servers without account verification only.", panelWidth - 24), left + 12, top + 167, 0xffd9cbdc, false);
         super.render(g, mouseX, mouseY, delta);
     }

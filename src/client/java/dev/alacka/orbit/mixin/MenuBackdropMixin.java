@@ -16,6 +16,7 @@ public abstract class MenuBackdropMixin {
         if (!GlassMenu.active()) return;
         Screen self = (Screen) (Object) this;
         GlassMenu.backdrop(graphics, self.width, self.height);
+        GlassMenu.screenPanel(graphics, self.width, self.height);
         ci.cancel();
     }
 
@@ -23,6 +24,7 @@ public abstract class MenuBackdropMixin {
     private static void orbit$glassList(GuiGraphics graphics, Identifier texture, int x, int y,
                                         float u, float v, int width, int height, CallbackInfo ci) {
         if (!GlassMenu.active()) return;
+        if (GlassMenu.selectionScreen()) { ci.cancel(); return; }
         GlassMenu.panel(graphics, x, y, width, height, 10, 0x60150b2c, 0x25ffffff);
         ci.cancel();
     }

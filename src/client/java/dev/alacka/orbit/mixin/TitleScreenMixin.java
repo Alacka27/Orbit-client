@@ -26,12 +26,12 @@ public abstract class TitleScreenMixin extends Screen {
             Button fallback = Button.builder(Component.literal("Minecraft menu"), button -> {
                 OrbitMenu.useVanillaForSession();
                 Minecraft.getInstance().setScreen(new TitleScreen());
-            }).bounds(12, height - 30, 104, 16).build();
+            }).bounds(12, height - 36, 104, 20).build();
             addRenderableWidget(fallback);
             orbit$menu.setFallback(fallback);
             Button profiles = Button.builder(Component.literal("Profiles"), button ->
                     Minecraft.getInstance().setScreen(new ProfilesScreen(this)))
-                    .bounds(width - 116, height - 30, 104, 16).build();
+                    .bounds(width - 126, height - 40, 114, 26).build();
             addRenderableWidget(profiles);
             orbit$menu.setProfiles(profiles);
         }
