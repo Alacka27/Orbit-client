@@ -26,11 +26,11 @@ jobs:
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
-      - name: Set up Java 21
+      - name: Set up Java 25 for Loom (mod bytecode targets Java 21)
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: '25'
       - name: Check official dependency metadata
         run: python3 .github/scripts/check_dependencies.py
       - name: Set up Gradle
@@ -44,6 +44,7 @@ jobs:
         shell: python
         run: |
           import json
+          import struct
           import zipfile
           from pathlib import Path
           jar = Path('build/libs/orbit-0.1.0-bootstrap.jar')
@@ -52,8 +53,11 @@ jobs:
               assert info['id'] == 'orbit', info
               assert info['version'] == '0.1.0-bootstrap', info
               assert info['depends']['minecraft'] == '1.21.11', info
-              assert 'dev/alacka/orbit/OrbitClient.class' in archive.namelist()
-          print('Compiled entrypoint and expanded Fabric metadata verified:', jar)
+              bytecode = archive.read('dev/alacka/orbit/OrbitClient.class')
+              magic, minor, major = struct.unpack('>IHH', bytecode[:8])
+              assert magic == 0xCAFEBABE, 'Invalid class file'
+              assert major == 65, f'Expected Java 21 bytecode (65), got {major}'
+          print('Compiled entrypoint, Java 21 bytecode and expanded Fabric metadata verified:', jar)
       - name: Upload bootstrap jar
         uses: actions/upload-artifact@v4
         with:
@@ -67,4 +71,5 @@ jobs:
           BUILD_STATUS: ${{ job.status }}
         run: |
           printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Build JVM: Java 25. Mod bytecode target: Java 21.' >> "$GITHUB_STEP_SUMMARY"
           echo 'This is a bootstrap only, NOT the complete Orbit client. A successful build does not prove in-game compatibility.' >> "$GITHUB_STEP_SUMMARY"
