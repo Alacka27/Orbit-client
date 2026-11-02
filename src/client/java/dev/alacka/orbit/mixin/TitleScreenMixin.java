@@ -1,6 +1,7 @@
 package dev.alacka.orbit.mixin;
 
 import dev.alacka.orbit.menu.OrbitMenu;
+import dev.alacka.orbit.profiles.ProfilesScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -28,6 +29,11 @@ public abstract class TitleScreenMixin extends Screen {
             }).bounds(12, height - 30, 104, 16).build();
             addRenderableWidget(fallback);
             orbit$menu.setFallback(fallback);
+            Button profiles = Button.builder(Component.literal("Profiles"), button ->
+                    Minecraft.getInstance().setScreen(new ProfilesScreen(this)))
+                    .bounds(width - 116, height - 30, 104, 16).build();
+            addRenderableWidget(profiles);
+            orbit$menu.setProfiles(profiles);
         }
     }
 

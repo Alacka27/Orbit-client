@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.resources.Identifier;
 import dev.alacka.orbit.mixin.CycleButtonAccessor;
+import dev.alacka.orbit.profiles.ProfilesScreen;
 
 /** Lightweight translucent styling, not a blur/shader effect. No in-world GUI changes. */
 public final class GlassMenu {
@@ -79,8 +80,11 @@ public final class GlassMenu {
         boolean title = Minecraft.getInstance().screen instanceof TitleScreen;
         int fillAlpha = !button.active ? 25 : title ? (primary ? 24 : 14) + (int) (state.value * 24) : 112 + (int) (state.value * 18);
         int borderAlpha = !button.active ? 24 : 72 + (int) (state.value * 85);
+        boolean profileAccent = Minecraft.getInstance().screen instanceof ProfilesScreen
+                && button.getMessage().getString().equals("Select");
         panel(g, button.getX(), button.getY(), button.getWidth(), button.getHeight(), 7,
-                fillAlpha << 24 | (title ? 0xffffff : 0x190d36), borderAlpha << 24 | 0xffffff);
+                (profileAccent ? 0xb8ca3657 : fillAlpha << 24 | (title ? 0xffffff : 0x190d36)),
+                borderAlpha << 24 | 0xffffff);
         var font = Minecraft.getInstance().font;
         String label = button.getMessage().getString();
         if (font.width(label) > button.getWidth() - 14) {

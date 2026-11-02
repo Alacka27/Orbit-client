@@ -30,6 +30,7 @@ public final class OrbitMenu {
     private final Screen screen;
     private final List<AbstractWidget> buttons;
     private Button fallback;
+    private Button profiles;
     private final int logoSize;
     private final int top;
     private final int firstButtonY;
@@ -110,12 +111,13 @@ public final class OrbitMenu {
     }
 
     public void setFallback(Button button) { fallback = button; }
+    public void setProfiles(Button button) { profiles = button; }
     public static boolean isEnabled() { return enabled; }
     public static boolean isAnimated() { return animation; }
     public static void useVanillaForSession() { enabled = false; current = null; }
     private void hideUnmanaged() {
         for (var child : screen.children()) {
-            if (child instanceof AbstractWidget widget && !buttons.contains(widget) && widget != fallback) {
+            if (child instanceof AbstractWidget widget && !buttons.contains(widget) && widget != fallback && widget != profiles) {
                 widget.visible = false;
             }
         }
@@ -145,7 +147,7 @@ public final class OrbitMenu {
         while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
         g.drawString(font, user, w - font.width(user) - 12, 12, 0xfff0eaff, false);
         g.fill(12, 12, 15, 21, 0xffdebdff);
-        g.drawString(font, "ORBIT / 0.4.0", 21, 12, 0xffe8ddfa, false);
+        g.drawString(font, "ORBIT / 0.4.1", 21, 12, 0xffe8ddfa, false);
         g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xffeee7fa, false);
         String rights = "Not affiliated with Mojang";
         g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xffeee7fa, false);
@@ -155,7 +157,7 @@ public final class OrbitMenu {
         OrbitMenu menu = current;
         if (menu == null || Minecraft.getInstance().screen != menu.screen) return false;
         int index = menu.buttons.indexOf(button);
-        if (index < 0 && button != menu.fallback) return false;
+        if (index < 0 && button != menu.fallback && button != menu.profiles) return false;
         GlassMenu.button(g, button, index == 0);
         return true;
     }

@@ -38,6 +38,8 @@ jobs:
         run: python3 .github/scripts/check_dependencies.py
       - name: Test FreeLook state and config
         run: bash scripts/test-freelook.sh
+      - name: Test offline profile storage
+        run: bash scripts/test-profiles.sh
       - name: Check supplied logo and menu layout
         run: python3 tools/test_menu_assets.py
       - name: Test glass panel geometry
@@ -56,8 +58,8 @@ jobs:
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.4.0-clouds.jar')
-          expected = ['CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin']
+          jar = Path('build/libs/orbit-0.4.1-profiles.jar')
+          expected = ['MainProfileMixin', 'CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
               icon = archive.read(info['icon'])
@@ -67,7 +69,7 @@ jobs:
               assert wallpaper[:8] == b'\x89PNG\r\n\x1a\n'
               assert struct.unpack('>II', wallpaper[16:24]) == (1600, 900)
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.4.0-clouds', info
+              assert info['version'] == '0.4.1-profiles', info
               assert info['depends']['minecraft'] == '1.21.11', info
               assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
               mixins = json.loads(archive.read('orbit.client.mixins.json'))
@@ -78,7 +80,10 @@ jobs:
                           'dev/alacka/orbit/freelook/FreeLookController.class',
                           'dev/alacka/orbit/freelook/FreeLookState.class',
                           'dev/alacka/orbit/menu/OrbitMenu.class',
-                          'dev/alacka/orbit/menu/GlassMenu.class']
+                          'dev/alacka/orbit/menu/GlassMenu.class',
+                          'dev/alacka/orbit/profiles/ProfilesScreen.class',
+                          'dev/alacka/orbit/profiles/ProfileStore.class',
+                          'dev/alacka/orbit/profiles/ProfileLaunch.class']
               required += ['dev/alacka/orbit/mixin/' + name + '.class' for name in expected]
               for name in required:
                   assert name in archive.namelist(), name
@@ -91,8 +96,8 @@ jobs:
       - name: Upload cloud glass preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.4.0-clouds
-          path: build/libs/orbit-0.4.0-clouds.jar
+          name: orbit-1.21.11-0.4.1-profiles
+          path: build/libs/orbit-0.4.1-profiles.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result
