@@ -12,6 +12,6 @@ public final class OrbitClient implements ClientModInitializer {
     public void onInitializeClient() {
         FreeLookController.initialize();
         OrbitMenu.initialize();
-        LOGGER.info("[Orbit] 0.4.1 Profiles preview, cloud glass menu and FreeLook initialized.");
+        LOGGER.info("[Orbit] 0.4.2 Profiles preview, cloud glass menu and FreeLook initialized.");
     }
 }

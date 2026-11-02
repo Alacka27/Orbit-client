@@ -47,7 +47,7 @@ public final class OrbitMenu {
                 values.setProperty("animation", "true");
                 try (Writer writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8,
                         StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
-                    values.store(writer, "Orbit blue main menu. Set enabled=false for vanilla. Restart to reload.");
+                    values.store(writer, "Orbit violet glass main menu. Set enabled=false for vanilla. Restart to reload.");
                 }
             }
             enabled = booleanSetting(values, "enabled", true);
@@ -72,14 +72,17 @@ public final class OrbitMenu {
         boolean compact = screen.height < 300;
         logoSize = compact ? 52 : 82;
         int h = compact ? 22 : 28;
-        int contentHeight = logoSize + 39 + h * 4 + 6 * 3;
-        top = Math.max(8, (screen.height - contentHeight - 22) / 2);
+        int contentHeight = logoSize + 39 + h * 3 + 6 * 2;
+        top = Math.max(8, (screen.height - contentHeight - 44) / 2);
         firstButtonY = top + logoSize + 39;
         int w = Math.min(220, screen.width - 48);
         for (int i = 0; i < buttons.size(); i++) {
             AbstractWidget button = buttons.get(i);
-            button.setPosition((screen.width - w) / 2, firstButtonY + i * (h + 6));
-            button.setWidth(w);
+            int row = Math.min(i, 2);
+            int bw = i < 2 ? w : (w - 6) / 2;
+            int x = (screen.width - w) / 2 + (i == 3 ? (w + 6) / 2 : 0);
+            button.setPosition(x, firstButtonY + row * (h + 6));
+            button.setWidth(bw);
             button.setHeight(h);
         }
     }
@@ -105,6 +108,8 @@ public final class OrbitMenu {
             if (found == null) return null;
             selected.add(found);
         }
+        // Multiplayer is the leading action, as in the supplied reference.
+        java.util.Collections.swap(selected, 0, 1);
         current = new OrbitMenu(screen, selected);
         current.hideUnmanaged();
         return current;
@@ -130,8 +135,9 @@ public final class OrbitMenu {
         int panelWidth = buttons.get(0).getWidth() + 28;
         int bottom = buttons.get(buttons.size() - 1).getY() + buttons.get(buttons.size() - 1).getHeight();
         int panelBottom = Math.min(bottom + 12, h - 31);
+        GlassMenu.shadow(g, (w - panelWidth) / 2, top - 4, panelWidth, panelBottom - (top - 4));
         GlassMenu.panel(g, (w - panelWidth) / 2, top - 4, panelWidth, panelBottom - (top - 4),
-                14, 0x60180c35, 0x1dffffff);
+                12, 0xb51d1529, 0x3a9c7eb9);
         int logoX = (w - logoSize) / 2;
         g.blit(RenderPipelines.GUI_TEXTURED, ICON, logoX, top, 0f, 0f,
                 logoSize, logoSize, 512, 512, 512, 512, 0xffffffff);
@@ -139,15 +145,16 @@ public final class OrbitMenu {
         g.pose().scale(2f, 2f);
         g.drawCenteredString(Minecraft.getInstance().font, "O R B I T", w / 4, (top + logoSize + 1) / 2, 0xffe3efff);
         g.pose().popMatrix();
-        g.drawCenteredString(Minecraft.getInstance().font, "YOUR WORLD. YOUR ORBIT.", w / 2,
-                firstButtonY - 13, 0xffded3f5);
+        var subtitle = GlassMenu.text("YOUR WORLD. YOUR ORBIT.");
+        g.drawString(Minecraft.getInstance().font, subtitle, (w - Minecraft.getInstance().font.width(subtitle)) / 2,
+                firstButtonY - 15, 0xffc5b4d9, false);
         var font = Minecraft.getInstance().font;
         String user = Minecraft.getInstance().getUser().getName();
         int maxWidth = Math.max(40, (w - logoSize) / 2 - 24);
         while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
         g.drawString(font, user, w - font.width(user) - 12, 12, 0xfff0eaff, false);
         g.fill(12, 12, 15, 21, 0xffdebdff);
-        g.drawString(font, "ORBIT / 0.4.1", 21, 12, 0xffe8ddfa, false);
+        g.drawString(font, "ORBIT / 0.4.2", 21, 12, 0xffe8ddfa, false);
         g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xffeee7fa, false);
         String rights = "Not affiliated with Mojang";
         g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xffeee7fa, false);

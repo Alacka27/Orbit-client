@@ -34,8 +34,17 @@ def generateOrbitWallpaper = tasks.register('generateOrbitWallpaper', Exec) {
     commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_wallpaper.py'
 }
 
+def generateOrbitUi = tasks.register('generateOrbitUi', Exec) {
+    inputs.file('tools/generate_ui.py')
+    inputs.file('tools/assets/orbit-ui.ttf.b64')
+    inputs.file('tools/assets/LICENSE')
+    outputs.dir('src/main/resources/assets/orbit/textures/gui/sprites/ui')
+    outputs.dir('src/main/resources/assets/orbit/font')
+    commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_ui.py'
+}
+
 processResources {
-    dependsOn generateOrbitIcon, generateOrbitWallpaper
+    dependsOn generateOrbitIcon, generateOrbitWallpaper, generateOrbitUi
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') {
         expand version: project.version
@@ -55,5 +64,5 @@ java {
 
 // sourcesJar also reads src/main/resources, including both generated images.
 tasks.named('sourcesJar') {
-    dependsOn generateOrbitIcon, generateOrbitWallpaper
+    dependsOn generateOrbitIcon, generateOrbitWallpaper, generateOrbitUi
 }
