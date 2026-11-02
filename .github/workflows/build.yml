@@ -7,6 +7,7 @@ on:
       - 'src/**'
       - 'tests/**'
       - 'scripts/**'
+      - 'tools/**'
       - '*.gradle'
       - 'gradle.properties'
       - '.github/workflows/build.yml'
@@ -22,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Test and build FreeLook preview
+    name: Test and build blue menu preview
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -37,6 +38,8 @@ jobs:
         run: python3 .github/scripts/check_dependencies.py
       - name: Test FreeLook state and config
         run: bash scripts/test-freelook.sh
+      - name: Check original icon and menu layout
+        run: python3 tools/test_menu_assets.py
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -51,12 +54,15 @@ jobs:
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.2.0-freelook.jar')
-          expected = ['CameraMixin', 'MouseHandlerMixin']
+          jar = Path('build/libs/orbit-0.3.0-blue-menu.jar')
+          expected = ['CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
+              icon = archive.read(info['icon'])
+              assert icon[:8] == b'\x89PNG\r\n\x1a\n', 'Missing or invalid icon'
+              assert struct.unpack('>II', icon[16:24]) == (512, 512)
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.2.0-freelook', info
+              assert info['version'] == '0.3.0-blue-menu', info
               assert info['depends']['minecraft'] == '1.21.11', info
               assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
               mixins = json.loads(archive.read('orbit.client.mixins.json'))
@@ -65,7 +71,8 @@ jobs:
               assert sorted(mixins['client']) == sorted(expected)
               required = ['dev/alacka/orbit/OrbitClient.class',
                           'dev/alacka/orbit/freelook/FreeLookController.class',
-                          'dev/alacka/orbit/freelook/FreeLookState.class']
+                          'dev/alacka/orbit/freelook/FreeLookState.class',
+                          'dev/alacka/orbit/menu/OrbitMenu.class']
               required += ['dev/alacka/orbit/mixin/' + name + '.class' for name in expected]
               for name in required:
                   assert name in archive.namelist(), name
@@ -73,13 +80,13 @@ jobs:
                   if name.startswith('dev/alacka/orbit/') and name.endswith('.class'):
                       magic, minor, major = struct.unpack('>IHH', archive.read(name)[:8])
                       assert magic == 0xCAFEBABE and major == 65, (name, major)
-          print('FreeLook classes, Java 21 bytecode and Mixin metadata verified:', jar)
+          print('Menu/icon/FreeLook, Java 21 bytecode and Mixin metadata verified:', jar)
           print('Actual Mixin application and camera behaviour still require an in-game test.')
-      - name: Upload FreeLook preview jar
+      - name: Upload blue menu preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.2.0-freelook
-          path: build/libs/orbit-0.2.0-freelook.jar
+          name: orbit-1.21.11-0.3.0-blue-menu
+          path: build/libs/orbit-0.3.0-blue-menu.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result
@@ -89,4 +96,4 @@ jobs:
         run: |
           printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
           echo 'Build JVM: Java 25. Mod bytecode target: Java 21.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'FreeLook preview only. Other planned modules are not implemented. A successful build is not an in-game test.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Blue main menu and FreeLook preview. Theme editor and other planned modules are not implemented. A successful build is not an in-game test.' >> "$GITHUB_STEP_SUMMARY"

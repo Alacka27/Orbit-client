@@ -21,7 +21,14 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
+def generateOrbitIcon = tasks.register('generateOrbitIcon', Exec) {
+    inputs.file('tools/generate_icon.py')
+    outputs.file('src/main/resources/assets/orbit/icon.png')
+    commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_icon.py'
+}
+
 processResources {
+    dependsOn generateOrbitIcon
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') {
         expand version: project.version

@@ -2,8 +2,9 @@
   "schemaVersion": 1,
   "id": "orbit",
   "version": "${version}",
-  "name": "Orbit — FreeLook preview",
-  "description": "Hold-to-look third-person camera with smooth return and saved settings. Other planned modules are not implemented yet.",
+  "name": "Orbit",
+  "description": "Blue square-Earth main menu and hold-to-look camera. Preview; other planned modules are not implemented.",
+  "icon": "assets/orbit/icon.png",
   "authors": [
     "Alacka27"
   ],
