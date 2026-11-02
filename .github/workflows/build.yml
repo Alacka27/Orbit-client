@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'src/**'
+      - 'tests/**'
+      - 'scripts/**'
       - '*.gradle'
       - 'gradle.properties'
       - '.github/workflows/build.yml'
@@ -20,7 +22,7 @@ concurrency:
 
 jobs:
   build:
-    name: Verify dependencies and compile bootstrap
+    name: Test and build FreeLook preview
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -33,6 +35,8 @@ jobs:
           java-version: '25'
       - name: Check official dependency metadata
         run: python3 .github/scripts/check_dependencies.py
+      - name: Test FreeLook state and config
+        run: bash scripts/test-freelook.sh
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -40,29 +44,42 @@ jobs:
           cache-read-only: true
       - name: Compile and remap mod
         run: gradle --no-daemon --stacktrace build
-      - name: Verify built mod metadata
+      - name: Verify built mod metadata and mixins
         shell: python
         run: |
           import json
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.1.0-bootstrap.jar')
+          jar = Path('build/libs/orbit-0.2.0-freelook.jar')
+          expected = ['CameraMixin', 'MouseHandlerMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.1.0-bootstrap', info
+              assert info['version'] == '0.2.0-freelook', info
               assert info['depends']['minecraft'] == '1.21.11', info
-              bytecode = archive.read('dev/alacka/orbit/OrbitClient.class')
-              magic, minor, major = struct.unpack('>IHH', bytecode[:8])
-              assert magic == 0xCAFEBABE, 'Invalid class file'
-              assert major == 65, f'Expected Java 21 bytecode (65), got {major}'
-          print('Compiled entrypoint, Java 21 bytecode and expanded Fabric metadata verified:', jar)
-      - name: Upload bootstrap jar
+              assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
+              mixins = json.loads(archive.read('orbit.client.mixins.json'))
+              assert mixins['required'] is True
+              assert mixins['compatibilityLevel'] == 'JAVA_21'
+              assert sorted(mixins['client']) == sorted(expected)
+              required = ['dev/alacka/orbit/OrbitClient.class',
+                          'dev/alacka/orbit/freelook/FreeLookController.class',
+                          'dev/alacka/orbit/freelook/FreeLookState.class']
+              required += ['dev/alacka/orbit/mixin/' + name + '.class' for name in expected]
+              for name in required:
+                  assert name in archive.namelist(), name
+              for name in archive.namelist():
+                  if name.startswith('dev/alacka/orbit/') and name.endswith('.class'):
+                      magic, minor, major = struct.unpack('>IHH', archive.read(name)[:8])
+                      assert magic == 0xCAFEBABE and major == 65, (name, major)
+          print('FreeLook classes, Java 21 bytecode and Mixin metadata verified:', jar)
+          print('Actual Mixin application and camera behaviour still require an in-game test.')
+      - name: Upload FreeLook preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-bootstrap
-          path: build/libs/orbit-0.1.0-bootstrap.jar
+          name: orbit-1.21.11-0.2.0-freelook
+          path: build/libs/orbit-0.2.0-freelook.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result
@@ -72,4 +89,4 @@ jobs:
         run: |
           printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
           echo 'Build JVM: Java 25. Mod bytecode target: Java 21.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'This is a bootstrap only, NOT the complete Orbit client. A successful build does not prove in-game compatibility.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'FreeLook preview only. Other planned modules are not implemented. A successful build is not an in-game test.' >> "$GITHUB_STEP_SUMMARY"

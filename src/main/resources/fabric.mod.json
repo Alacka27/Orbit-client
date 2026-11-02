@@ -2,13 +2,23 @@
   "schemaVersion": 1,
   "id": "orbit",
   "version": "${version}",
-  "name": "Orbit (bootstrap)",
-  "description": "Fabric 1.21.11 build verification only. Gameplay modules are not implemented yet.",
-  "authors": ["Alacka27"],
+  "name": "Orbit — FreeLook preview",
+  "description": "Hold-to-look third-person camera with smooth return and saved settings. Other planned modules are not implemented yet.",
+  "authors": [
+    "Alacka27"
+  ],
   "environment": "client",
   "entrypoints": {
-    "client": ["dev.alacka.orbit.OrbitClient"]
+    "client": [
+      "dev.alacka.orbit.OrbitClient"
+    ]
   },
+  "mixins": [
+    {
+      "config": "orbit.client.mixins.json",
+      "environment": "client"
+    }
+  ],
   "depends": {
     "fabricloader": ">=0.20.1",
     "minecraft": "1.21.11",
