@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "orbit",
+  "version": "${version}",
+  "name": "Orbit (bootstrap)",
+  "description": "Fabric 1.21.11 build verification only. Gameplay modules are not implemented yet.",
+  "authors": ["Alacka27"],
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.alacka.orbit.OrbitClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,70 @@
+name: Orbit - Fabric build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '*.gradle'
+      - 'gradle.properties'
+      - '.github/workflows/build.yml'
+      - '.github/scripts/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orbit-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Verify dependencies and compile bootstrap
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Check official dependency metadata
+        run: python3 .github/scripts/check_dependencies.py
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.8.2'
+          cache-read-only: true
+      - name: Compile and remap mod
+        run: gradle --no-daemon --stacktrace build
+      - name: Verify built mod metadata
+        shell: python
+        run: |
+          import json
+          import zipfile
+          from pathlib import Path
+          jar = Path('build/libs/orbit-0.1.0-bootstrap.jar')
+          with zipfile.ZipFile(jar) as archive:
+              info = json.loads(archive.read('fabric.mod.json'))
+              assert info['id'] == 'orbit', info
+              assert info['version'] == '0.1.0-bootstrap', info
+              assert info['depends']['minecraft'] == '1.21.11', info
+              assert 'dev/alacka/orbit/OrbitClient.class' in archive.namelist()
+          print('Compiled entrypoint and expanded Fabric metadata verified:', jar)
+      - name: Upload bootstrap jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbit-1.21.11-bootstrap
+          path: build/libs/orbit-0.1.0-bootstrap.jar
+          if-no-files-found: error
+          retention-days: 14
+      - name: Write build result
+        if: always()
+        env:
+          BUILD_STATUS: ${{ job.status }}
+        run: |
+          printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
+          echo 'This is a bootstrap only, NOT the complete Orbit client. A successful build does not prove in-game compatibility.' >> "$GITHUB_STEP_SUMMARY"
