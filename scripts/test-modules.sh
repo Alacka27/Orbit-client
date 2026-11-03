@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+classes="$(mktemp -d)"
+trap 'rm -rf "$classes"' EXIT
+java --module jdk.compiler/com.sun.tools.javac.Main --release 21 -encoding UTF-8 -d "$classes" \
+  src/client/java/dev/alacka/orbit/config/ClientSettings.java \
+  src/client/java/dev/alacka/orbit/menu/UiPalette.java \
+  src/client/java/dev/alacka/orbit/menu/ThemeLayout.java \
+  src/client/java/dev/alacka/orbit/modules/Ballistics.java \
+  tests/java/dev/alacka/orbit/ModulesSettingsSelfTest.java
+java -ea -Djava.awt.headless=true -cp "$classes" dev.alacka.orbit.ModulesSettingsSelfTest

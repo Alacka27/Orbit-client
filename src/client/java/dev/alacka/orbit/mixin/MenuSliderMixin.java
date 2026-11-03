@@ -23,9 +23,9 @@ public abstract class MenuSliderMixin {
         GlassMenu.panel(g, x, y, width, height, 8, 0xd3282034,
                 self.isHoveredOrFocused() ? 0xc2be91ec : 0x546b557e);
         int end = x + 5 + (int) ((width - 10) * value);
-        if (end > x + 5) g.fill(x + 5, y + height - 4, end, y + height - 2, 0x989f73d6);
+        if (end > x + 5) g.fill(x + 5, y + height - 4, end, y + height - 2, dev.alacka.orbit.menu.UiTheme.tint(0x989f73d6, false));
         int thumb = x + 1 + (int) ((width - 8) * value);
-        g.fill(thumb, y + height - 4, thumb + 6, y + height - 1, 0xffdfc4ff);
+        g.fill(thumb, y + height - 4, thumb + 6, y + height - 1, dev.alacka.orbit.menu.UiTheme.tint(0xffdfc4ff, false));
         var font = Minecraft.getInstance().font;
         String label = self.getMessage().getString();
         int available = Math.max(0, width - 12);

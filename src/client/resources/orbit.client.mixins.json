@@ -21,7 +21,9 @@
     "MenuMessageMixin",
     "ClickMenuKeyMixin",
     "WorldListTextMixin",
-    "ServerListTextMixin"
+    "ServerListTextMixin",
+    "NoFallMixin",
+    "JesusMixin"
   ],
   "injectors": {
     "defaultRequire": 1
