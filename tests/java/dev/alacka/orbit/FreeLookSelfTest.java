@@ -82,6 +82,11 @@ public final class FreeLookSelfTest {
             check(!saved.enabled(), "Disabled setting reloads");
             near(saved.returnSpeed(), 7.5, 0, "Custom speed reloads");
             check(Files.readString(config).equals(custom), "Valid config not overwritten");
+            Files.writeString(config, "enabled=false\nreturnSpeed=7.5\ncustom=keep\n");
+            new FreeLookConfig(true, 7.5).save(config);
+            check(FreeLookConfig.load(config).enabled(), "UI toggle saved");
+            near(FreeLookConfig.load(config).returnSpeed(), 7.5, 0, "UI toggle preserves speed");
+            check(Files.readString(config).contains("custom=keep"), "UI save preserves unrelated key");
             String[] invalid = {"NaN", "Infinity", "0", "41", "oops"};
             for (String invalidSpeed : invalid) {
                 String invalidConfig = "enabled=true\nreturnSpeed=" + invalidSpeed + "\n";
@@ -91,6 +96,8 @@ public final class FreeLookSelfTest {
                     throw new AssertionError("Accepted invalid speed: " + invalidSpeed);
                 } catch (java.io.IOException expected) {
                     check(Files.readString(config).equals(invalidConfig), "Bad config preserved: " + invalidSpeed);
+                    try { new FreeLookConfig(true, 12).save(config); throw new AssertionError("Invalid file overwritten"); }
+                    catch (java.io.IOException expectedSave) { check(Files.readString(config).equals(invalidConfig), "UI refuses corrupt config"); }
                 }
             }
             Files.writeString(config, "enabled=maybe\nreturnSpeed=12\n");

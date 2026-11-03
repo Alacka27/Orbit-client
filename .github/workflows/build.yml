@@ -38,6 +38,8 @@ jobs:
         run: python3 .github/scripts/check_dependencies.py
       - name: Test FreeLook state and config
         run: bash scripts/test-freelook.sh
+      - name: Test responsive ClickGUI layout
+        run: bash scripts/test-clickgui.sh
       - name: Test offline profile storage
         run: bash scripts/test-profiles.sh
       - name: Check supplied logo and menu layout
@@ -58,8 +60,8 @@ jobs:
           import struct
           import zipfile
           from pathlib import Path
-          jar = Path('build/libs/orbit-0.4.3-ui-fix.jar')
-          expected = ['MainProfileMixin', 'CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin', 'MenuListMixin', 'MenuEditBoxMixin', 'MenuFontMixin', 'MenuSliderMixin', 'MenuScrollMixin', 'MenuCheckboxMixin', 'MenuTabMixin', 'MenuSeparatorMixin', 'MenuMessageMixin']
+          jar = Path('build/libs/orbit-0.4.4-clickgui.jar')
+          expected = ['MainProfileMixin', 'CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin', 'MenuListMixin', 'MenuEditBoxMixin', 'MenuFontMixin', 'MenuSliderMixin', 'MenuScrollMixin', 'MenuCheckboxMixin', 'MenuTabMixin', 'MenuSeparatorMixin', 'MenuMessageMixin', 'ClickMenuKeyMixin', 'WorldListTextMixin', 'ServerListTextMixin']
           with zipfile.ZipFile(jar) as archive:
               info = json.loads(archive.read('fabric.mod.json'))
               icon = archive.read(info['icon'])
@@ -77,7 +79,7 @@ jobs:
                   assert 'assets/orbit/textures/gui/sprites/ui/' + sprite + '.png' in archive.namelist()
                   assert 'assets/orbit/textures/gui/sprites/ui/' + sprite + '.png.mcmeta' in archive.namelist()
               assert info['id'] == 'orbit', info
-              assert info['version'] == '0.4.3-ui-fix', info
+              assert info['version'] == '0.4.4-clickgui', info
               assert info['depends']['minecraft'] == '1.21.11', info
               assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
               mixins = json.loads(archive.read('orbit.client.mixins.json'))
@@ -89,6 +91,9 @@ jobs:
                           'dev/alacka/orbit/freelook/FreeLookState.class',
                           'dev/alacka/orbit/menu/OrbitMenu.class',
                           'dev/alacka/orbit/menu/GlassMenu.class',
+                          'dev/alacka/orbit/menu/OrbitClickScreen.class',
+                          'dev/alacka/orbit/menu/ClickMenuController.class',
+                          'dev/alacka/orbit/menu/ClickMenuLayout.class',
                           'dev/alacka/orbit/profiles/ProfilesScreen.class',
                           'dev/alacka/orbit/profiles/ProfileStore.class',
                           'dev/alacka/orbit/profiles/ProfileLaunch.class']
@@ -104,8 +109,8 @@ jobs:
       - name: Upload cloud glass preview jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.4.3-ui-fix
-          path: build/libs/orbit-0.4.3-ui-fix.jar
+          name: orbit-1.21.11-0.4.4-clickgui
+          path: build/libs/orbit-0.4.4-clickgui.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result

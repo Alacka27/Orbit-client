@@ -22,6 +22,8 @@ import dev.alacka.orbit.profiles.ProfilesScreen;
 
 /** Unified menu theme. HUD, chat and inventory/container rendering remain untouched. */
 public final class GlassMenu {
+    public static final int WINDOW_FILL = 0x2e181026;
+    public static final int WINDOW_BORDER = 0x5fa991c2;
     private static final Identifier CLOUDS = Identifier.fromNamespaceAndPath("orbit", "clouds.png");
     private static final Identifier SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/surface");
     private static final Identifier BORDER = Identifier.fromNamespaceAndPath("orbit", "ui/border");
@@ -34,7 +36,7 @@ public final class GlassMenu {
 
     public static boolean active() {
         Minecraft client = Minecraft.getInstance();
-        return OrbitMenu.isEnabled() && client.screen != null
+        return (OrbitMenu.isEnabled() || client.screen instanceof OrbitClickScreen) && client.screen != null
                 && !(client.screen instanceof ChatScreen)
                 && !(client.screen instanceof AbstractContainerScreen<?>);
     }
@@ -49,7 +51,7 @@ public final class GlassMenu {
 
     public static void backdrop(GuiGraphics g, int width, int height) {
         if (Minecraft.getInstance().level != null) {
-            g.fill(0, 0, width, height, 0xa6100b1a);
+            g.fill(0, 0, width, height, 0x70100b1a);
             return;
         }
         double scale = Math.max(width / 1600.0, height / 900.0);
@@ -70,7 +72,7 @@ public final class GlassMenu {
         g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_BORDER : BORDER, x, y, width, height, border);
     }
     public static void shadow(GuiGraphics g, int x, int y, int width, int height) {
-        if (width > 0 && height > 0) g.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - 6, y - 4, width + 12, height + 12);
+        if (width > 0 && height > 0) g.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - 6, y - 4, width + 12, height + 12, 0x40ffffff);
     }
     public static Component text(String label) {
         return Component.literal(label);
@@ -84,10 +86,11 @@ public final class GlassMenu {
     }
     public static void screenPanel(GuiGraphics g, int width, int height) {
         if (!active() || Minecraft.getInstance().screen instanceof TitleScreen
-                || Minecraft.getInstance().screen instanceof ProfilesScreen) return;
+                || Minecraft.getInstance().screen instanceof ProfilesScreen
+                || Minecraft.getInstance().screen instanceof OrbitClickScreen) return;
         int w = Math.min(width - 16, 552), x = (width - w) / 2;
         shadow(g, x, 7, w, height - 14);
-        panel(g, x, 7, w, height - 14, 12, 0xd51c1528, 0x36d6c9ec);
+        panel(g, x, 7, w, height - 14, 12, WINDOW_FILL, WINDOW_BORDER);
     }
     public static void card(GuiGraphics g, net.minecraft.client.gui.layouts.LayoutElement entry, boolean selected, boolean hovered) {
         int fill = selected ? 0xb7503277 : hovered ? 0x98504461 : 0x70423850;
@@ -112,13 +115,13 @@ public final class GlassMenu {
         state.value += (target - state.value) * (OrbitMenu.isAnimated() ? 1 - (float) Math.exp(-dt * 16) : 1);
         boolean title = Minecraft.getInstance().screen instanceof TitleScreen;
         String raw = button.getMessage().getString();
-        boolean accent = primary || (Minecraft.getInstance().screen instanceof ProfilesScreen
+        boolean accent = primary || (Minecraft.getInstance().screen instanceof OrbitClickScreen click && click.selectedButton(button)) || (Minecraft.getInstance().screen instanceof ProfilesScreen
                 && (raw.equals("Select") || raw.equals("Back")))
                 || button.getMessage().equals(Component.translatable("gui.back"))
                 || button.getMessage().equals(Component.translatable("gui.done"));
         int fill = !button.active ? 0x58352c43 : accent
-                ? mix(0xe57846b7, 0xfa9a65dd, state.value)
-                : mix(title ? 0xb72d233b : 0xa52b2336, 0xd94b365f, state.value);
+                ? mix(0xac7846b7, 0xd29a65dd, state.value)
+                : mix(title ? 0x732d233b : 0x732b2336, 0xa94b365f, state.value);
         int border = !button.active ? 0x254f435e : accent
                 ? mix(0xb1c299ed, 0xffddc4ff, state.value)
                 : mix(0x415e4c72, 0xb6b491dc, state.value);
