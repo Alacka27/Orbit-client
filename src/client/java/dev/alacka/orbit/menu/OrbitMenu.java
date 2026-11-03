@@ -119,6 +119,24 @@ public final class OrbitMenu {
     public void setProfiles(Button button) { profiles = button; }
     public static boolean isEnabled() { return enabled; }
     public static boolean isAnimated() { return animation; }
+    public static void setAnimation(boolean value) throws java.io.IOException {
+        Path path = FabricLoader.getInstance().getConfigDir().resolve("orbit/mainmenu.properties");
+        Properties p = new Properties();
+        if (Files.exists(path)) {
+            try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) { p.load(reader); }
+            booleanSetting(p, "enabled", true); booleanSetting(p, "animation", true);
+        }
+        p.setProperty("animation", Boolean.toString(value));
+        Files.createDirectories(path.getParent());
+        Path temp = Files.createTempFile(path.getParent(), "mainmenu-", ".tmp");
+        try {
+            try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) { p.store(writer, "Orbit menu settings"); }
+            try { Files.move(temp, path, java.nio.file.StandardCopyOption.ATOMIC_MOVE, java.nio.file.StandardCopyOption.REPLACE_EXISTING); }
+            catch (java.nio.file.AtomicMoveNotSupportedException e) { Files.move(temp, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING); }
+            animation = value;
+        } finally { Files.deleteIfExists(temp); }
+    }
+
     public static void useVanillaForSession() { enabled = false; current = null; }
     private void hideUnmanaged() {
         for (var child : screen.children()) {
@@ -137,7 +155,7 @@ public final class OrbitMenu {
         int panelBottom = Math.min(bottom + 12, h - 31);
         GlassMenu.shadow(g, (w - panelWidth) / 2, top - 4, panelWidth, panelBottom - (top - 4));
         GlassMenu.panel(g, (w - panelWidth) / 2, top - 4, panelWidth, panelBottom - (top - 4),
-                12, 0xb51d1529, 0x3a9c7eb9);
+                12, GlassMenu.WINDOW_FILL, GlassMenu.WINDOW_BORDER);
         int logoX = (w - logoSize) / 2;
         g.blit(RenderPipelines.GUI_TEXTURED, ICON, logoX, top, 0f, 0f,
                 logoSize, logoSize, 512, 512, 512, 512, 0xffffffff);
@@ -147,14 +165,14 @@ public final class OrbitMenu {
         g.pose().popMatrix();
         var subtitle = GlassMenu.text("YOUR WORLD. YOUR ORBIT.");
         g.drawString(Minecraft.getInstance().font, subtitle, (w - Minecraft.getInstance().font.width(subtitle)) / 2,
-                firstButtonY - 15, 0xffc5b4d9, false);
+                firstButtonY - 15, 0xfff0e4fa, true);
         var font = Minecraft.getInstance().font;
         String user = Minecraft.getInstance().getUser().getName();
         int maxWidth = Math.max(40, (w - logoSize) / 2 - 24);
         while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
         g.drawString(font, user, w - font.width(user) - 12, 12, 0xfff0eaff, false);
         g.fill(12, 12, 15, 21, 0xffdebdff);
-        g.drawString(font, "ORBIT / 0.4.3", 21, 12, 0xffe8ddfa, false);
+        g.drawString(font, "ORBIT / 0.4.4", 21, 12, 0xffe8ddfa, false);
         g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xffeee7fa, false);
         String rights = "Not affiliated with Mojang";
         g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xffeee7fa, false);
