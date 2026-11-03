@@ -118,26 +118,15 @@ public final class OrbitMenu {
     public void setFallback(Button button) { fallback = button; }
     public void setProfiles(Button button) { profiles = button; }
     public static boolean isEnabled() { return enabled; }
-    public static boolean isAnimated() { return animation; }
+    public static boolean legacyAnimation() { return animation; }
+    public static boolean isAnimated() { return dev.alacka.orbit.config.OrbitSettings.theme().animations(); }
     public static void setAnimation(boolean value) throws java.io.IOException {
-        Path path = FabricLoader.getInstance().getConfigDir().resolve("orbit/mainmenu.properties");
-        Properties p = new Properties();
-        if (Files.exists(path)) {
-            try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) { p.load(reader); }
-            booleanSetting(p, "enabled", true); booleanSetting(p, "animation", true);
-        }
-        p.setProperty("animation", Boolean.toString(value));
-        Files.createDirectories(path.getParent());
-        Path temp = Files.createTempFile(path.getParent(), "mainmenu-", ".tmp");
-        try {
-            try (Writer writer = Files.newBufferedWriter(temp, StandardCharsets.UTF_8)) { p.store(writer, "Orbit menu settings"); }
-            try { Files.move(temp, path, java.nio.file.StandardCopyOption.ATOMIC_MOVE, java.nio.file.StandardCopyOption.REPLACE_EXISTING); }
-            catch (java.nio.file.AtomicMoveNotSupportedException e) { Files.move(temp, path, java.nio.file.StandardCopyOption.REPLACE_EXISTING); }
-            animation = value;
-        } finally { Files.deleteIfExists(temp); }
+        var p = dev.alacka.orbit.config.OrbitSettings.get();
+        dev.alacka.orbit.config.OrbitSettings.save(p.theme(p.accent(),p.windowOpacity(),p.buttonOpacity(),value));
     }
 
     public static void useVanillaForSession() { enabled = false; current = null; }
+
     private void hideUnmanaged() {
         for (var child : screen.children()) {
             if (child instanceof AbstractWidget widget && !buttons.contains(widget) && widget != fallback && widget != profiles) {
@@ -171,8 +160,8 @@ public final class OrbitMenu {
         int maxWidth = Math.max(40, (w - logoSize) / 2 - 24);
         while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
         g.drawString(font, user, w - font.width(user) - 12, 12, 0xfff0eaff, false);
-        g.fill(12, 12, 15, 21, 0xffdebdff);
-        g.drawString(font, "ORBIT / 0.4.4", 21, 12, 0xffe8ddfa, false);
+        g.fill(12, 12, 15, 21, UiTheme.tint(0xffdebdff, false));
+        g.drawString(font, "ORBIT / 0.4.5", 21, 12, 0xffe8ddfa, false);
         g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xffeee7fa, false);
         String rights = "Not affiliated with Mojang";
         g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xffeee7fa, false);

@@ -14,6 +14,7 @@ public final class OrbitClient implements ClientModInitializer {
         FreeLookController.initialize();
         OrbitMenu.initialize();
         ClickMenuController.initialize();
-        LOGGER.info("[Orbit] 0.4.4 Transparent menus, RShift GUI and FreeLook initialized.");
+        dev.alacka.orbit.modules.Trajectories.initialize();
+        LOGGER.info("[Orbit] 0.4.5 NoFall, Jesus, Trajectories and per-profile interface settings initialized.");
     }
 }

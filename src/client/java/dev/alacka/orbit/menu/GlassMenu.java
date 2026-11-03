@@ -36,7 +36,7 @@ public final class GlassMenu {
 
     public static boolean active() {
         Minecraft client = Minecraft.getInstance();
-        return (OrbitMenu.isEnabled() || client.screen instanceof OrbitClickScreen) && client.screen != null
+        return (OrbitMenu.isEnabled() || client.screen instanceof OrbitClickScreen || client.screen instanceof ThemeSettingsScreen) && client.screen != null
                 && !(client.screen instanceof ChatScreen)
                 && !(client.screen instanceof AbstractContainerScreen<?>);
     }
@@ -67,6 +67,7 @@ public final class GlassMenu {
     /** Antialiased nine-slice sprites keep their corner radius at every GUI scale. */
     public static void panel(GuiGraphics g, int x, int y, int width, int height, int radius, int fill, int border) {
         if (width <= 0 || height <= 0) return;
+        fill = UiTheme.tint(fill, true); border = UiTheme.tint(border, false);
         boolean small = Math.min(width, height) < 20 || radius <= 5;
         g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_SURFACE : SURFACE, x, y, width, height, fill);
         g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_BORDER : BORDER, x, y, width, height, border);
@@ -87,7 +88,8 @@ public final class GlassMenu {
     public static void screenPanel(GuiGraphics g, int width, int height) {
         if (!active() || Minecraft.getInstance().screen instanceof TitleScreen
                 || Minecraft.getInstance().screen instanceof ProfilesScreen
-                || Minecraft.getInstance().screen instanceof OrbitClickScreen) return;
+                || Minecraft.getInstance().screen instanceof OrbitClickScreen
+                || Minecraft.getInstance().screen instanceof ThemeSettingsScreen) return;
         int w = Math.min(width - 16, 552), x = (width - w) / 2;
         shadow(g, x, 7, w, height - 14);
         panel(g, x, 7, w, height - 14, 12, WINDOW_FILL, WINDOW_BORDER);
@@ -112,10 +114,10 @@ public final class GlassMenu {
         float dt = state.last == 0 ? 1 : Math.min(0.2f, (now - state.last) / 1_000_000_000f);
         state.last = now;
         float target = button.active && button.isHoveredOrFocused() ? 1 : 0;
-        state.value += (target - state.value) * (OrbitMenu.isAnimated() ? 1 - (float) Math.exp(-dt * 16) : 1);
+        state.value += (target - state.value) * (dev.alacka.orbit.config.OrbitSettings.theme().animations() ? 1 - (float) Math.exp(-dt * 16) : 1);
         boolean title = Minecraft.getInstance().screen instanceof TitleScreen;
         String raw = button.getMessage().getString();
-        boolean accent = primary || (Minecraft.getInstance().screen instanceof OrbitClickScreen click && click.selectedButton(button)) || (Minecraft.getInstance().screen instanceof ProfilesScreen
+        boolean accent = primary || (Minecraft.getInstance().screen instanceof ThemeSettingsScreen && raw.equals("Применить")) || (Minecraft.getInstance().screen instanceof OrbitClickScreen click && click.selectedButton(button)) || (Minecraft.getInstance().screen instanceof ProfilesScreen
                 && (raw.equals("Select") || raw.equals("Back")))
                 || button.getMessage().equals(Component.translatable("gui.back"))
                 || button.getMessage().equals(Component.translatable("gui.done"));

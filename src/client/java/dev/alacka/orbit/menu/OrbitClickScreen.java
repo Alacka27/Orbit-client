@@ -1,6 +1,7 @@
 package dev.alacka.orbit.menu;
 
 import com.mojang.authlib.GameProfile;
+import dev.alacka.orbit.config.OrbitSettings;
 import dev.alacka.orbit.freelook.FreeLookController;
 import dev.alacka.orbit.profiles.ProfileLaunch;
 import dev.alacka.orbit.profiles.ProfileStore;
@@ -45,18 +46,26 @@ public final class OrbitClickScreen extends Screen {
                 catch (Exception e) { notice = "Не удалось сохранить настройки"; }
                 init();
             }).bounds(x, y, w, row).build());
+        } else if (selected == Tab.Pvp) {
+            module("NoFall", OrbitSettings.get().noFall(), x,y,w,row);
+            module("Jesus", OrbitSettings.get().jesus(), x,y+row+5,w,row);
         } else if (selected == Tab.Visual) {
-            addRenderableWidget(Button.builder(Component.literal("Анимации: " + (OrbitMenu.isAnimated() ? "ON" : "OFF")), b -> {
-                try { OrbitMenu.setAnimation(!OrbitMenu.isAnimated()); notice = "Сохранено"; }
-                catch (Exception e) { notice = "Не удалось сохранить настройки"; }
-                init();
-            }).bounds(x, y, w, row).build());
+            module("Trajectories", OrbitSettings.get().trajectories(), x,y,w,row);
         } else if (selected == Tab.Settings) {
+            addRenderableWidget(Button.builder(Component.literal("Интерфейс · цвет и прозрачность"), b ->
+                    minecraft.setScreen(new ThemeSettingsScreen(this))).bounds(x,y,w,row).build());
             addRenderableWidget(Button.builder(Component.literal("Настройки Minecraft"), b ->
-                    minecraft.setScreen(new OptionsScreen(this, minecraft.options))).bounds(x, y, w, row).build());
+                    minecraft.setScreen(new OptionsScreen(this, minecraft.options))).bounds(x,y+row+5,w,row).build());
         }
         addRenderableWidget(Button.builder(Component.literal("Profiles"), b -> minecraft.setScreen(new ProfilesScreen(this)))
                 .bounds(box.x() + box.width() - 92, box.y() + box.height() - 32, 80, 22).build());
+    }
+    private void module(String name, boolean enabled, int x,int y,int w,int h) {
+        addRenderableWidget(Button.builder(Component.literal(name + ": " + (enabled ? "ON" : "OFF")), b -> {
+            try { OrbitSettings.save(OrbitSettings.get().module(name,!enabled)); notice="Сохранено"; }
+            catch (Exception e) { notice="Ошибка сохранения; файл не изменён"; }
+            init();
+        }).bounds(x,y,w,h).build());
     }
     public boolean selectedButton(AbstractButton button) { return tabs.get(selected) == button; }
     private void line(GuiGraphics g, String value, int y, int color) {
@@ -76,13 +85,14 @@ public final class OrbitClickScreen extends Screen {
         GlassMenu.panel(g, box.x() + 5, box.y() + 5, box.sidebar() - 10, box.height() - 10, 10, 0x26180e28, 0x188f6eac);
         GlassMenu.text(g, "O R B I T", box.x() + 12, box.y() + 12, 0xffffffff);
         line(g, selected.name(), box.y() + 15, 0xffffffff);
-        line(g, "Orbit / 0.4.4", box.y() + 31, 0xffeee1fb);
+        line(g, "Orbit / 0.4.5", box.y() + 31, 0xffeee1fb);
         int body = box.y() + (box.height() < 230 ? 86 : 94);
         switch (selected) {
             case General -> lines(g, box.height() < 200 ? FreeLookController.keyLabel() + " · вид сзади" : "Свободный обзор: удерживай " + FreeLookController.keyLabel() + " в виде от третьего лица сзади. Профили доступны справа снизу.", body);
-            case Visual -> lines(g, box.height() < 200 ? "Плавная подсветка кнопок." : "Плавная подсветка кнопок. Прозрачные панели, фиолетовый акцент и исходный фон с облаками.", body);
-            case Settings -> lines(g, box.height() < 200 ? "Esc — закрыть меню" : "Меню: " + ClickMenuController.keyLabel() + ". Клавишу можно изменить в управлении Minecraft. Esc закрывает меню.", body);
-            case Pvp, Fun -> lines(g, "В этой вкладке пока нет модулей. Рабочие функции появятся здесь по мере добавления.", box.y() + 63);
+            case Visual -> lines(g, box.height()<200 ? "Лук и метательные предметы." : "Trajectories: лук, снежки, яйца, жемчуг и зелья. Метка — первое столкновение. Без натяжения лука показан полный заряд; разброс не учитывается.", body);
+            case Settings -> lines(g, box.height()<200 ? "Личная тема · Esc — назад" : "Цвет, плотность окон и кнопок, анимации. Настройки сохраняются отдельно для текущего профиля.", body+(box.height()<230?20:29));
+            case Pvp -> lines(g, box.height()<200 ? "Зависит от сервера. Shift — нырнуть." : "NoFall: флаг земли при падении. Jesus: поверхность воды; удерживай Shift, чтобы нырнуть. Сервер может отклонять движение.", body+(box.height()<230?20:29));
+            case Fun -> lines(g, "В этой вкладке пока нет модулей.", box.y()+63);
         }
         if (!notice.isEmpty()) line(g, notice, box.y() + box.height() - 49, 0xfff1dfff);
         drawPlayer(g);
