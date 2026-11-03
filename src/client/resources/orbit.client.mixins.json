@@ -18,7 +18,10 @@
     "MenuCheckboxMixin",
     "MenuTabMixin",
     "MenuSeparatorMixin",
-    "MenuMessageMixin"
+    "MenuMessageMixin",
+    "ClickMenuKeyMixin",
+    "WorldListTextMixin",
+    "ServerListTextMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -38,6 +38,14 @@ public final class FreeLookController {
         ClientTickEvents.START_CLIENT_TICK.register(client -> synchronize());
     }
 
+    public static boolean enabled() { return config.enabled(); }
+    public static String keyLabel() { return holdKey == null ? "Left Alt" : holdKey.getTranslatedKeyMessage().getString(); }
+    public static void setEnabled(boolean value) throws java.io.IOException {
+        FreeLookConfig next = new FreeLookConfig(value, config.returnSpeed());
+        next.save(FabricLoader.getInstance().getConfigDir().resolve("orbit/freelook.properties"));
+        config = next; STATE.reset(); releaseRequired = true;
+    }
+
     /** Called by ticks, camera setup and mouse input; all run on the client thread. */
     public static void synchronize() {
         Minecraft client = Minecraft.getInstance();
