@@ -4,8 +4,14 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "MainProfileMixin",
+    "MinecraftSessionMixin",
+    "RealmsClientAccessor",
+    "RealmsIdentityMixin",
+    "RealmsAvailabilityMixin",
+    "ResourcePackIdentityMixin",
     "CameraMixin",
     "MouseHandlerMixin",
+    "ZoomFovMixin",
     "TitleScreenMixin",
     "MenuButtonMixin",
     "CycleButtonAccessor",
@@ -19,6 +25,7 @@
     "MenuTabMixin",
     "MenuSeparatorMixin",
     "MenuMessageMixin",
+    "MenuStringWidgetMixin",
     "ClickMenuKeyMixin",
     "WorldListTextMixin",
     "ServerListTextMixin",
@@ -34,7 +41,11 @@
     "DeathSkinMixin",
     "PauseSkinMixin",
     "SelectionWidthMixin",
-    "AdvancementSkinMixin"
+    "AdvancementSkinMixin",
+    "ChatHudMixin",
+    "VisualEventsMixin",
+    "VisualLocalPlayerMixin",
+    "SeeInvisiblesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

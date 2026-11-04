@@ -4,8 +4,15 @@ cd "$(dirname "$0")/.."
 classes="$(mktemp -d)"
 trap 'rm -rf "$classes"' EXIT
 java --module jdk.compiler/com.sun.tools.javac.Main --release 21 -encoding UTF-8 -d "$classes" \
+  src/client/java/dev/alacka/orbit/config/SupportSettings.java \
+  src/client/java/dev/alacka/orbit/config/BindPrefs.java \
+  src/client/java/dev/alacka/orbit/config/VisualSettings.java \
   src/client/java/dev/alacka/orbit/config/ClientSettings.java \
+  src/client/java/dev/alacka/orbit/config/CombatSettings.java \
+  src/client/java/dev/alacka/orbit/config/HudPrefs.java \
+  src/client/java/dev/alacka/orbit/hud/HudLayout.java \
   src/client/java/dev/alacka/orbit/menu/UiPalette.java \
+  src/client/java/dev/alacka/orbit/menu/ClickMenuLayout.java \
   src/client/java/dev/alacka/orbit/menu/ThemeLayout.java \
   src/client/java/dev/alacka/orbit/modules/Ballistics.java \
   tests/java/dev/alacka/orbit/ModulesSettingsSelfTest.java

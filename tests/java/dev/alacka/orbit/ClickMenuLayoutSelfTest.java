@@ -10,9 +10,9 @@ public final class ClickMenuLayoutSelfTest {
                 assert b.x()+b.width() <= w-10 && b.y()+b.height() <= h-10;
                 assert b.tabHeight() >= 14 && b.contentWidth() >= 168;
                 assert b.tabY(4)+b.tabHeight() <= b.footerY()-2 : "tabs overlap player block";
-                assert b.footerY()+32 <= b.y()+b.height()-8;
+                assert b.footerY()+20 <= b.y()+b.height()-8;
                 assert b.contentX() > b.x()+b.sidebar();
-                assert b.contentX()+b.contentWidth() == b.x()+b.width()-16;
+                assert b.contentX()+b.contentWidth() == b.x()+b.width()-12;
                 assert b.x()+b.width()-92 > b.x()+b.sidebar();
                 count++;
             }

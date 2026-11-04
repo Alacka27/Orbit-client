@@ -1,5 +1,6 @@
 package dev.alacka.orbit.mixin;
 import dev.alacka.orbit.menu.HudTheme;
+import dev.alacka.orbit.hud.HudGeometry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -14,7 +15,7 @@ public abstract class HudSkinMixin {
     @Inject(method="renderHotbarAndDecorations",at=@At("HEAD"))
     private void orbit$hotbarScale(GuiGraphics g,DeltaTracker delta,CallbackInfo ci){
         orbit$hotbarScaled=HudTheme.enabled();if(!orbit$hotbarScaled)return;
-        float scale=(float)Math.min(1.45,Math.max(1,(g.guiWidth()-70)/390.0));
+        float scale=HudGeometry.scale(g.guiWidth());
         g.pose().pushMatrix();g.pose().translate(g.guiWidth()/2f,g.guiHeight());g.pose().scale(scale,scale);g.pose().translate(-g.guiWidth()/2f,-g.guiHeight());
     }
     @Inject(method="renderHotbarAndDecorations",at=@At("RETURN"))
