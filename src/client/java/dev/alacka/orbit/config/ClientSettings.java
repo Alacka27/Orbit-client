@@ -8,7 +8,7 @@ import java.util.Properties;
 /** Local preferences only: UUID-named files never contain account credentials. */
 public record ClientSettings(int accent, int windowOpacity, int buttonOpacity, boolean animations,
                              boolean noFall, boolean jesus, boolean trajectories) {
-    public static final ClientSettings DEFAULT = new ClientSettings(0x945cda, 18, 60, true, false, false, false);
+    public static final ClientSettings DEFAULT = new ClientSettings(0xa15be0, 55, 70, true, false, false, false);
     public ClientSettings {
         if (accent < 0 || accent > 0xffffff || windowOpacity < 0 || windowOpacity > 85
                 || buttonOpacity < 35 || buttonOpacity > 95) throw new IllegalArgumentException("Invalid theme values");
