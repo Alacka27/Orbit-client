@@ -23,7 +23,18 @@
     "WorldListTextMixin",
     "ServerListTextMixin",
     "NoFallMixin",
-    "JesusMixin"
+    "JesusMixin",
+    "ContainerScreenAccessor",
+    "ContainerSkinMixin",
+    "GameGuiGraphicsMixin",
+    "HudSkinMixin",
+    "TooltipSkinMixin",
+    "ChatGlassMixin",
+    "TabGlassMixin",
+    "DeathSkinMixin",
+    "PauseSkinMixin",
+    "SelectionWidthMixin",
+    "AdvancementSkinMixin"
   ],
   "injectors": {
     "defaultRequire": 1
