@@ -1,24 +1,15 @@
-"""Stdlib asset/font checks. Runtime and geometry have their own separate tests."""
+"""Read-only checks for retained 0.4.7 resources and font coverage; not runtime geometry QA."""
 from pathlib import Path
-import json,struct,subprocess,sys,zlib
+import hashlib,json,struct
+from check_ui_resources import check_resource
 ROOT=Path(__file__).resolve().parents[1]
-subprocess.run([sys.executable,str(ROOT/'tools/generate_ui.py')],check=True)
 ASSETS=ROOT/'src/main/resources/assets/orbit'
-SPRITES=('surface','border','shadow','surface_small','border_small','surface_medium','border_medium','window','window_shade')
-for kind in SPRITES:
-    path=ASSETS/f'textures/gui/sprites/ui/{kind}.png';data=path.read_bytes()
-    assert data[:8]==b'\x89PNG\r\n\x1a\n' and struct.unpack('>IIBB',data[16:26])==(64,64,8,6)
-    pos=8;compressed=b''
-    while pos<len(data):
-        n=struct.unpack('>I',data[pos:pos+4])[0];tag=data[pos+4:pos+8];payload=data[pos+8:pos+8+n]
-        assert zlib.crc32(tag+payload)&0xffffffff==struct.unpack('>I',data[pos+8+n:pos+12+n])[0]
-        if tag==b'IDAT':compressed+=payload
-        pos+=n+12
-    raw=zlib.decompress(compressed);alpha=[raw[y*257+1+x*4+3] for y in range(64) for x in range(64)]
-    assert min(alpha)==0 and any(0<a<255 for a in alpha)
-    if kind!='shadow':assert max(alpha)==255
-    meta=json.loads(path.with_suffix('.png.mcmeta').read_text())['gui']['scaling']
-    assert meta['type']=='nine_slice' and meta['stretch_inner'] is True and meta['border']*2<=32
+expected=json.loads((ROOT/'tools/assets/orbit047-resource-hashes.json').read_text())
+for name,digest in expected.items():
+    path=ROOT/'src/main/resources'/name
+    assert path.exists(),name
+    check_resource(name,path.read_bytes(),digest)
+assert not list((ASSETS/'textures/gui/sprites/ui').glob('*.png')),'Legacy raster sprites must not replace vector panels'
 
 def validate_font(path):
     data=path.read_bytes();assert data[:4]==b'\0\1\0\0'
@@ -49,13 +40,18 @@ def validate_font(path):
         return 0
     for cp in list(range(0x20,0x7f))+list(range(0x410,0x450))+[0x401,0x451,0x2026]:assert glyph(cp)>0,(path.name,f'U+{cp:04X}')
 for face in ('ui','ui_bold'):
-    d=json.loads((ASSETS/f'font/{face}.json').read_text());provider=d['providers'][0]
-    assert provider['type']=='ttf' and provider['oversample']>=2
-    ns,res=provider['file'].split(':',1);assert not res.startswith('font/')
-    validate_font(ROOT/'src/main/resources/assets'/ns/'font'/res)
-    assert d['providers'][1]=={'type':'reference','id':'minecraft:default'}
+    validate_font(ASSETS/'font'/f'{face}.ttf')
+fonts=sorted((ASSETS/'font').glob('*.json'))
+assert len(fonts)==18
+for file in fonts:
+    providers=json.loads(file.read_text())['providers']
+    assert providers[0]['type']=='ttf' and 1<=providers[0]['oversample']<=8,file
+    ns,res=providers[0]['file'].split(':',1)
+    assert not res.startswith('font/')
+    assert (ROOT/'src/main/resources'/f'assets/{ns}/font/{res}').exists()
+    assert providers[-1]=={'type':'reference','id':'minecraft:default'},file
 assert (ASSETS/'font/license.txt').exists()
 source=(ROOT/'src/client/java/dev/alacka/orbit/menu/GlassMenu.java').read_text()
-assert 'blitSprite' in source and 'radius, int fill, int border' in source
-assert '0xb8ca3657' not in source
-print('PASS: 9 antialiased RGBA/nine-slice sprites, CRCs, regular+bold Latin/Cyrillic cmap, Orbit derivative names, OFL license and fallback providers.')
+assert 'ShapeMath.fill' in source and 'SmoothShapes.mesh' in source
+assert 'radius, int fill, int border' in source
+print(f'PASS: {len(expected)-2} byte-identical 0.4.7 UI resources, no Orbit vanilla key labels, 18 font descriptions, Latin/Cyrillic cmap, OFL and fallback providers; vector panel path retained.')

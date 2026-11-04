@@ -34,6 +34,19 @@ def generateOrbitWallpaper = tasks.register('generateOrbitWallpaper', Exec) {
     commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'), 'tools/generate_wallpaper.py'
 }
 
+// GitHub snapshots contain text sources, never local account data or binary blobs.
+// Recreate the exact pinned fonts/public key on a clean checkout before packaging.
+def restoreOrbitBinaryResources = tasks.register('restoreOrbitBinaryResources', Exec) {
+    inputs.files('tools/restore_binary_resources.py', 'tools/assets/orbit-ui.ttf.b64',
+            'tools/assets/orbit-ui-bold.ttf.xz.b64', 'tools/assets/ely-textures-public-key.der.b64')
+    outputs.files('src/main/resources/assets/orbit/font/ui.ttf',
+            'src/main/resources/assets/orbit/font/ui_bold.ttf',
+            'src/main/resources/assets/orbit/auth/ely-textures-public-key.der')
+    commandLine providers.gradleProperty('pythonExecutable').getOrElse('python3'),
+            'tools/restore_binary_resources.py'
+}
+
+// Legacy 0.4.6 generator; current font descriptions are checked in, TTFs restored above.
 def generateOrbitUi = tasks.register('generateOrbitUi', Exec) {
     inputs.file('tools/generate_ui.py')
     inputs.file('tools/assets/orbit-ui.ttf.b64')
@@ -45,7 +58,7 @@ def generateOrbitUi = tasks.register('generateOrbitUi', Exec) {
 }
 
 processResources {
-    dependsOn generateOrbitIcon, generateOrbitWallpaper, generateOrbitUi
+    dependsOn generateOrbitIcon, generateOrbitWallpaper, restoreOrbitBinaryResources
     inputs.property 'version', project.version
     filesMatching('fabric.mod.json') {
         expand version: project.version
@@ -65,5 +78,5 @@ java {
 
 // sourcesJar also reads src/main/resources, including both generated images.
 tasks.named('sourcesJar') {
-    dependsOn generateOrbitIcon, generateOrbitWallpaper, generateOrbitUi
+    dependsOn generateOrbitIcon, generateOrbitWallpaper, restoreOrbitBinaryResources
 }
