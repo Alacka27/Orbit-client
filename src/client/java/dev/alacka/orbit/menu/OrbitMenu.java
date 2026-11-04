@@ -150,18 +150,19 @@ public final class OrbitMenu {
                 logoSize, logoSize, 512, 512, 512, 512, 0xffffffff);
         g.pose().pushMatrix();
         g.pose().scale(2f, 2f);
-        g.drawCenteredString(Minecraft.getInstance().font, "O R B I T", w / 4, (top + logoSize + 1) / 2, 0xffe3efff);
+        var word = GlassMenu.boldText("O R B I T");
+        g.drawString(Minecraft.getInstance().font, word, w / 4 - Minecraft.getInstance().font.width(word) / 2,
+                (top + logoSize + 1) / 2, 0xfffaf5ff, false);
         g.pose().popMatrix();
         var subtitle = GlassMenu.text("YOUR WORLD. YOUR ORBIT.");
         g.drawString(Minecraft.getInstance().font, subtitle, (w - Minecraft.getInstance().font.width(subtitle)) / 2,
                 firstButtonY - 15, 0xfff0e4fa, true);
         var font = Minecraft.getInstance().font;
-        String user = Minecraft.getInstance().getUser().getName();
-        int maxWidth = Math.max(40, (w - logoSize) / 2 - 24);
-        while (user.length() > 1 && font.width(user) > maxWidth) user = user.substring(0, user.length() - 1);
-        g.drawString(font, user, w - font.width(user) - 12, 12, 0xfff0eaff, false);
+        int accountWidth = Math.min(144, Math.max(100, w / 3));
+        int accountX = (profiles == null ? w - 126 : profiles.getX()) - accountWidth - 10;
+        PlayerIdentity.draw(g, accountX, h - 42, accountWidth);
         g.fill(12, 12, 15, 21, UiTheme.tint(0xffdebdff, false));
-        g.drawString(font, "ORBIT / 0.4.5", 21, 12, 0xffe8ddfa, false);
+        g.drawString(font, "ORBIT / 0.4.6", 21, 12, 0xffe8ddfa, false);
         g.drawString(font, "Minecraft 1.21.11", 12, h - 11, 0xffeee7fa, false);
         String rights = "Not affiliated with Mojang";
         g.drawString(font, rights, w - font.width(rights) - 12, h - 11, 0xffeee7fa, false);

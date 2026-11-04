@@ -37,6 +37,7 @@ def generateOrbitWallpaper = tasks.register('generateOrbitWallpaper', Exec) {
 def generateOrbitUi = tasks.register('generateOrbitUi', Exec) {
     inputs.file('tools/generate_ui.py')
     inputs.file('tools/assets/orbit-ui.ttf.b64')
+    inputs.file('tools/assets/orbit-ui-bold.ttf.xz.b64')
     inputs.file('tools/assets/LICENSE')
     outputs.dir('src/main/resources/assets/orbit/textures/gui/sprites/ui')
     outputs.dir('src/main/resources/assets/orbit/font')

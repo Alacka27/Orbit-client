@@ -1,125 +1,81 @@
 package dev.alacka.orbit.menu;
 
-import com.mojang.authlib.GameProfile;
 import dev.alacka.orbit.config.OrbitSettings;
 import dev.alacka.orbit.freelook.FreeLookController;
-import dev.alacka.orbit.profiles.ProfileLaunch;
-import dev.alacka.orbit.profiles.ProfileStore;
 import dev.alacka.orbit.profiles.ProfilesScreen;
 import java.util.EnumMap;
-import java.util.UUID;
-import java.util.function.Supplier;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.PlayerFaceRenderer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
-import net.minecraft.client.resources.DefaultPlayerSkin;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.PlayerSkin;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
 
-/** Functional widgets; empty categories do not pretend to contain working modules. */
+/** All visible toggles act on existing modules; no placeholder switches. */
 public final class OrbitClickScreen extends Screen {
-    public enum Tab { General, Pvp, Visual, Fun, Settings }
-    private final Screen parent;
-    private Tab selected = Tab.General;
-    private final EnumMap<Tab, Button> tabs = new EnumMap<>(Tab.class);
-    private ClickMenuLayout box;
-    private String notice = "";
-    private Supplier<PlayerSkin> skin;
-    private UUID skinId;
-
-    public OrbitClickScreen(Screen parent) { super(Component.literal("Orbit")); this.parent = parent; }
-    @Override protected void init() {
-        clearWidgets(); tabs.clear(); box = ClickMenuLayout.of(width, height);
-        for (Tab tab : Tab.values()) {
-            Button button = Button.builder(Component.literal(tab.name()), b -> { selected = tab; notice = ""; init(); })
-                    .bounds(box.x() + 8, box.tabY(tab.ordinal()), box.sidebar() - 16, box.tabHeight()).build();
-            tabs.put(tab, addRenderableWidget(button));
+    public enum Tab { General,Pvp,Visual,Fun,Settings }
+    private final Screen parent; private Tab selected=Tab.General;
+    private final EnumMap<Tab,Button> tabs=new EnumMap<>(Tab.class);
+    private ClickMenuLayout box; private String notice="";
+    public OrbitClickScreen(Screen parent){super(Component.literal("Orbit"));this.parent=parent;}
+    @Override protected void init(){
+        clearWidgets();tabs.clear();box=ClickMenuLayout.of(width,height);
+        for(Tab tab:Tab.values())tabs.put(tab,addRenderableWidget(Button.builder(Component.literal(tab.name()),b->{selected=tab;notice="";init();})
+                .bounds(box.x()+8,box.tabY(tab.ordinal()),box.sidebar()-16,box.tabHeight()).build()));
+        int x=box.contentX(),w=box.contentWidth(),y=box.y()+54;
+        int room=box.height()-106,card=Math.min(72,room),half=Math.min(68,(room-8)/2);
+        if(selected==Tab.General){
+            addRenderableWidget(new ModuleCard(x,y,w,card,"FreeLook","Свободный обзор без изменения направления движения. Клавиша: "+FreeLookController.keyLabel(),FreeLookController::enabled,b->{
+                try{FreeLookController.setEnabled(!FreeLookController.enabled());notice="Сохранено";}catch(Exception e){notice="Не удалось сохранить настройки";}init();
+            }));
+        }else if(selected==Tab.Pvp){
+            module("NoFall","Флаг земли при падении. Сервер может отклонить действие.",x,y,w,half);
+            module("Jesus","Поверхность воды. Удерживай Shift, чтобы нырнуть.",x,y+half+8,w,half);
+        }else if(selected==Tab.Visual){
+            module("Trajectories","Прогноз полёта снаряда и метка первого столкновения.",x,y,w,card);
+        }else if(selected==Tab.Settings){
+            addRenderableWidget(Button.builder(Component.literal("Интерфейс · цвет и прозрачность"),b->minecraft.setScreen(new ThemeSettingsScreen(this))).bounds(x,y,w,26).build());
+            addRenderableWidget(Button.builder(Component.literal("Настройки Minecraft"),b->minecraft.setScreen(new OptionsScreen(this,minecraft.options))).bounds(x,y+34,w,26).build());
         }
-        int x = box.contentX(), w = box.contentWidth(), y = box.y() + 59;
-        int row = box.height() < 230 ? 20 : 24;
-        if (selected == Tab.General) {
-            addRenderableWidget(Button.builder(Component.literal("FreeLook: " + (FreeLookController.enabled() ? "ON" : "OFF")), b -> {
-                try { FreeLookController.setEnabled(!FreeLookController.enabled()); notice = "Сохранено"; }
-                catch (Exception e) { notice = "Не удалось сохранить настройки"; }
-                init();
-            }).bounds(x, y, w, row).build());
-        } else if (selected == Tab.Pvp) {
-            module("NoFall", OrbitSettings.get().noFall(), x,y,w,row);
-            module("Jesus", OrbitSettings.get().jesus(), x,y+row+5,w,row);
-        } else if (selected == Tab.Visual) {
-            module("Trajectories", OrbitSettings.get().trajectories(), x,y,w,row);
-        } else if (selected == Tab.Settings) {
-            addRenderableWidget(Button.builder(Component.literal("Интерфейс · цвет и прозрачность"), b ->
-                    minecraft.setScreen(new ThemeSettingsScreen(this))).bounds(x,y,w,row).build());
-            addRenderableWidget(Button.builder(Component.literal("Настройки Minecraft"), b ->
-                    minecraft.setScreen(new OptionsScreen(this, minecraft.options))).bounds(x,y+row+5,w,row).build());
+        addRenderableWidget(Button.builder(Component.literal("Profiles"),b->minecraft.setScreen(new ProfilesScreen(this)))
+                .bounds(box.x()+box.width()-92,box.y()+box.height()-32,80,22).build());
+    }
+    private void module(String name,String description,int x,int y,int w,int h){
+        java.util.function.BooleanSupplier state=()->switch(name){case "NoFall"->OrbitSettings.get().noFall();case "Jesus"->OrbitSettings.get().jesus();default->OrbitSettings.get().trajectories();};
+        addRenderableWidget(new ModuleCard(x,y,w,h,name,description,state,b->{
+            try{OrbitSettings.save(OrbitSettings.get().module(name,!state.getAsBoolean()));notice="Сохранено";}catch(Exception e){notice="Ошибка сохранения; файл не изменён";}init();
+        }));
+    }
+    public boolean selectedButton(AbstractButton button){return tabs.get(selected)==button;}
+    private void lines(GuiGraphics g,String value,int y,int color){
+        for(var line:font.split(Component.literal(value),box.contentWidth())){if(y+9>box.y()+box.height()-55)break;g.drawString(font,line,box.contentX(),y,color,false);y+=12;}
+    }
+    @Override public void render(GuiGraphics g,int mx,int my,float delta){
+        renderBackground(g,mx,my,delta);
+        GlassMenu.shadow(g,box.x(),box.y(),box.width(),box.height());
+        GlassMenu.panel(g,box.x(),box.y(),box.width(),box.height(),12,GlassMenu.WINDOW_FILL,GlassMenu.WINDOW_BORDER);
+        GlassMenu.panel(g,box.x()+1,box.y()+1,box.sidebar()-1,box.height()-2,10,0x451a1028,0x248765a4);
+        GlassMenu.text(g,"O R B I T",box.x()+13,box.y()+13,0xffffffff);
+        GlassMenu.heading(g,selected.name(),box.contentX(),box.y()+13,0xffffffff);
+        GlassMenu.text(g,"Модули Orbit",box.contentX(),box.y()+29,0xffdecee9);
+        int helper=box.y()+54+Math.min(72,box.height()-106)+10;
+        if(selected==Tab.General&&box.height()>245)lines(g,"Удерживай Alt в виде от третьего лица сзади, чтобы осмотреться вокруг.",helper,0xffe3d5ef);
+        if(selected==Tab.Visual&&box.height()>245){
+            GlassMenu.panel(g,box.contentX(),helper,box.contentWidth(),47,5,0x60523c67,0x329a79b4);
+            GlassMenu.text(g,"Поддерживаемые предметы",box.contentX()+8,helper+7,0xffe9dcf5);
+            var items=new net.minecraft.world.item.Item[]{Items.BOW,Items.SNOWBALL,Items.EGG,Items.ENDER_PEARL,Items.SPLASH_POTION};
+            for(int i=0;i<items.length;i++){int sx=box.contentX()+8+i*25;GlassMenu.panel(g,sx,helper+21,20,20,3,0x6d22182e,0x3b9375af);g.renderItem(new ItemStack(items[i]),sx+2,helper+23);}
         }
-        addRenderableWidget(Button.builder(Component.literal("Profiles"), b -> minecraft.setScreen(new ProfilesScreen(this)))
-                .bounds(box.x() + box.width() - 92, box.y() + box.height() - 32, 80, 22).build());
+        if(selected==Tab.Fun){int cy=box.y()+box.height()/2;g.drawCenteredString(font,"Пока нет модулей",box.contentX()+box.contentWidth()/2,cy-12,0xfff5ecff);lines(g,"Новые функции появятся здесь позже.",cy+9,0xffd5c3e4);}
+        if(selected==Tab.Settings&&box.height()>245)lines(g,"Личная тема сохраняется отдельно для текущего профиля. Esc отменяет неприменённые изменения.",box.y()+132,0xffe0d1ed);
+        if(!notice.isEmpty())lines(g,notice,box.y()+box.height()-53,0xfff6eaff);
+        g.fill(box.x()+9,box.footerY()-6,box.x()+box.sidebar()-9,box.footerY()-5,0x3b886ba4);
+        PlayerIdentity.draw(g,box.x()+9,box.footerY()+3,box.sidebar()-18);
+        GlassMenu.text(g,"Esc — назад",box.contentX(),box.y()+box.height()-24,0xffd5c2e5);
+        super.render(g,mx,my,delta);
     }
-    private void module(String name, boolean enabled, int x,int y,int w,int h) {
-        addRenderableWidget(Button.builder(Component.literal(name + ": " + (enabled ? "ON" : "OFF")), b -> {
-            try { OrbitSettings.save(OrbitSettings.get().module(name,!enabled)); notice="Сохранено"; }
-            catch (Exception e) { notice="Ошибка сохранения; файл не изменён"; }
-            init();
-        }).bounds(x,y,w,h).build());
-    }
-    public boolean selectedButton(AbstractButton button) { return tabs.get(selected) == button; }
-    private void line(GuiGraphics g, String value, int y, int color) {
-        GlassMenu.text(g, font.plainSubstrByWidth(value, box.contentWidth()), box.contentX(), y, color);
-    }
-    private void lines(GuiGraphics g, String value, int y) {
-        int limit = box.y() + box.height() - 59;
-        for (var text : font.split(Component.literal(value), box.contentWidth())) {
-            if (y + 9 > limit) break;
-            g.drawString(font, text, box.contentX(), y, 0xfff2eaf9, false); y += 13;
-        }
-    }
-    @Override public void render(GuiGraphics g, int mouseX, int mouseY, float delta) {
-        renderBackground(g, mouseX, mouseY, delta);
-        GlassMenu.shadow(g, box.x(), box.y(), box.width(), box.height());
-        GlassMenu.panel(g, box.x(), box.y(), box.width(), box.height(), 12, GlassMenu.WINDOW_FILL, GlassMenu.WINDOW_BORDER);
-        GlassMenu.panel(g, box.x() + 5, box.y() + 5, box.sidebar() - 10, box.height() - 10, 10, 0x26180e28, 0x188f6eac);
-        GlassMenu.text(g, "O R B I T", box.x() + 12, box.y() + 12, 0xffffffff);
-        line(g, selected.name(), box.y() + 15, 0xffffffff);
-        line(g, "Orbit / 0.4.5", box.y() + 31, 0xffeee1fb);
-        int body = box.y() + (box.height() < 230 ? 86 : 94);
-        switch (selected) {
-            case General -> lines(g, box.height() < 200 ? FreeLookController.keyLabel() + " · вид сзади" : "Свободный обзор: удерживай " + FreeLookController.keyLabel() + " в виде от третьего лица сзади. Профили доступны справа снизу.", body);
-            case Visual -> lines(g, box.height()<200 ? "Лук и метательные предметы." : "Trajectories: лук, снежки, яйца, жемчуг и зелья. Метка — первое столкновение. Без натяжения лука показан полный заряд; разброс не учитывается.", body);
-            case Settings -> lines(g, box.height()<200 ? "Личная тема · Esc — назад" : "Цвет, плотность окон и кнопок, анимации. Настройки сохраняются отдельно для текущего профиля.", body+(box.height()<230?20:29));
-            case Pvp -> lines(g, box.height()<200 ? "Зависит от сервера. Shift — нырнуть." : "NoFall: флаг земли при падении. Jesus: поверхность воды; удерживай Shift, чтобы нырнуть. Сервер может отклонять движение.", body+(box.height()<230?20:29));
-            case Fun -> lines(g, "В этой вкладке пока нет модулей.", box.y()+63);
-        }
-        if (!notice.isEmpty()) line(g, notice, box.y() + box.height() - 49, 0xfff1dfff);
-        drawPlayer(g);
-        super.render(g, mouseX, mouseY, delta);
-    }
-    private void drawPlayer(GuiGraphics g) {
-        int x = box.x() + 8, y = box.footerY(), w = box.sidebar() - 16;
-        GlassMenu.panel(g, x, y, w, 32, 5, 0x591c132c, 0x399d7fbe);
-        PlayerSkin currentSkin;
-        String name;
-        if (minecraft.player != null) {
-            currentSkin = minecraft.player.getSkin(); name = minecraft.player.getGameProfile().name();
-        } else {
-            var user = minecraft.getUser(); name = user.getName();
-            if (!user.getProfileId().equals(skinId)) {
-                skinId = user.getProfileId();
-                GameProfile profile = new GameProfile(skinId, name);
-                skin = ProfileLaunch.active().equals(ProfileStore.LAUNCHER)
-                        ? minecraft.getSkinManager().createLookup(profile, true)
-                        : () -> DefaultPlayerSkin.get(profile);
-            }
-            currentSkin = skin.get();
-        }
-        PlayerFaceRenderer.draw(g, currentSkin, x + 5, y + 6, 20);
-        GlassMenu.text(g, font.plainSubstrByWidth(name, w - 35), x + 31, y + 6, 0xffffffff);
-        GlassMenu.text(g, "Игрок", x + 31, y + 19, 0xffe4d2f6);
-    }
-    @Override public void onClose() { minecraft.setScreen(parent); }
-    @Override public boolean isPauseScreen() { return false; }
+    @Override public void onClose(){minecraft.setScreen(parent);}
+    @Override public boolean isPauseScreen(){return false;}
 }

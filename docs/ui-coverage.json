@@ -1,0 +1,290 @@
+[
+  {
+    "id": "01-main",
+    "reference": "Главное меню",
+    "presentation": "OrbitMenu / TitleScreenMixin",
+    "native": "native callbacks"
+  },
+  {
+    "id": "02-worlds",
+    "reference": "Выбор мира",
+    "presentation": "GlassMenu / SelectionWidthMixin",
+    "native": "native world list"
+  },
+  {
+    "id": "03-create",
+    "reference": "Создание мира",
+    "presentation": "GlassMenu / tabs and widgets",
+    "native": "native creation form"
+  },
+  {
+    "id": "04-generation",
+    "reference": "Генерация мира",
+    "presentation": "GlassMenu / tabs and widgets",
+    "native": "native generation controls"
+  },
+  {
+    "id": "05-world-edit",
+    "reference": "Настройка мира",
+    "presentation": "GlassMenu",
+    "native": "native world actions"
+  },
+  {
+    "id": "06-multiplayer",
+    "reference": "Мультиплеер",
+    "presentation": "GlassMenu / SelectionWidthMixin",
+    "native": "native server list and status"
+  },
+  {
+    "id": "07-server-add",
+    "reference": "Добавление сервера",
+    "presentation": "GlassMenu / MenuEditBoxMixin",
+    "native": "native server form"
+  },
+  {
+    "id": "08-direct",
+    "reference": "Прямое подключение",
+    "presentation": "GlassMenu / MenuEditBoxMixin",
+    "native": "native connect form"
+  },
+  {
+    "id": "09-options",
+    "reference": "Настройки",
+    "presentation": "GlassMenu / menu widgets",
+    "native": "native settings"
+  },
+  {
+    "id": "10-video",
+    "reference": "Видеонастройки",
+    "presentation": "GlassMenu / slider/cycle widgets",
+    "native": "native video settings"
+  },
+  {
+    "id": "11-audio",
+    "reference": "Музыка и звуки",
+    "presentation": "GlassMenu / slider widgets",
+    "native": "native sound settings"
+  },
+  {
+    "id": "12-controls",
+    "reference": "Управление",
+    "presentation": "GlassMenu / menu widgets",
+    "native": "native controls"
+  },
+  {
+    "id": "13-keybinds",
+    "reference": "Назначение клавиш",
+    "presentation": "GlassMenu / menu widgets",
+    "native": "native key bindings"
+  },
+  {
+    "id": "14-language",
+    "reference": "Язык",
+    "presentation": "GlassMenu / menu lists",
+    "native": "native language list"
+  },
+  {
+    "id": "15-accessibility",
+    "reference": "Специальные возможности",
+    "presentation": "GlassMenu / menu widgets",
+    "native": "native accessibility"
+  },
+  {
+    "id": "16-skin",
+    "reference": "Внешний вид",
+    "presentation": "GlassMenu / menu widgets",
+    "native": "native skin settings and preview"
+  },
+  {
+    "id": "17-packs",
+    "reference": "Наборы ресурсов",
+    "presentation": "GlassMenu / menu lists",
+    "native": "native resource packs"
+  },
+  {
+    "id": "18-rshift-general",
+    "reference": "RShift · General",
+    "presentation": "OrbitClickScreen / ModuleCard",
+    "native": "real FreeLook"
+  },
+  {
+    "id": "19-rshift-pvp",
+    "reference": "RShift · Pvp",
+    "presentation": "OrbitClickScreen / ModuleCard",
+    "native": "real NoFall / Jesus"
+  },
+  {
+    "id": "20-rshift-visual",
+    "reference": "RShift · Visual",
+    "presentation": "OrbitClickScreen / ModuleCard",
+    "native": "real Trajectories"
+  },
+  {
+    "id": "21-rshift-fun",
+    "reference": "RShift · Fun",
+    "presentation": "OrbitClickScreen",
+    "native": "honest empty state"
+  },
+  {
+    "id": "22-rshift-theme",
+    "reference": "RShift · Интерфейс",
+    "presentation": "ThemeSettingsScreen",
+    "native": "live preview / safe Apply-Cancel"
+  },
+  {
+    "id": "23-profiles",
+    "reference": "Profiles",
+    "presentation": "ProfilesScreen / ProfileRowButton",
+    "native": "existing restart-based identity model"
+  },
+  {
+    "id": "24-pause",
+    "reference": "Пауза",
+    "presentation": "PauseSkinMixin",
+    "native": "all existing actions retained"
+  },
+  {
+    "id": "25-hud",
+    "reference": "Хотбар и HUD",
+    "presentation": "HudSkinMixin / HudTheme",
+    "native": "native hotbar and status logic"
+  },
+  {
+    "id": "26-inventory",
+    "reference": "Инвентарь",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native inventory slots"
+  },
+  {
+    "id": "27-creative",
+    "reference": "Творческий инвентарь",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native creative tabs/search/scroll"
+  },
+  {
+    "id": "28-chest",
+    "reference": "Большой сундук",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native chest slots; both texture halves"
+  },
+  {
+    "id": "29-crafting",
+    "reference": "Верстак",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native 3×3 recipes"
+  },
+  {
+    "id": "30-furnace",
+    "reference": "Печь",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native furnace / progress / recipe book"
+  },
+  {
+    "id": "31-enchanting",
+    "reference": "Зачарование",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native book / costs / offers"
+  },
+  {
+    "id": "32-anvil",
+    "reference": "Наковальня",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native rename field / costs"
+  },
+  {
+    "id": "33-trading",
+    "reference": "Торговля",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native trade list and availability"
+  },
+  {
+    "id": "34-brewing",
+    "reference": "Зельеварение",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native brewing state"
+  },
+  {
+    "id": "35-smithing",
+    "reference": "Кузнечный стол",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native smithing templates / preview"
+  },
+  {
+    "id": "36-cartography",
+    "reference": "Картографический стол",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native map result previews"
+  },
+  {
+    "id": "37-stonecutter",
+    "reference": "Камнерез",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native recipe grid / scroll"
+  },
+  {
+    "id": "38-loom",
+    "reference": "Ткацкий станок",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native patterns / banner preview"
+  },
+  {
+    "id": "39-grindstone",
+    "reference": "Точило",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native repair / disenchant"
+  },
+  {
+    "id": "40-beacon",
+    "reference": "Маяк",
+    "presentation": "ContainerSkinMixin / GameUiTheme",
+    "native": "native powers / payment / availability"
+  },
+  {
+    "id": "41-advancements",
+    "reference": "Достижения",
+    "presentation": "AdvancementSkinMixin / GameUiTheme",
+    "native": "native graph / tabs / scroll / tooltips"
+  },
+  {
+    "id": "42-statistics",
+    "reference": "Статистика",
+    "presentation": "GlassMenu / menu lists",
+    "native": "native statistics"
+  },
+  {
+    "id": "43-chat",
+    "reference": "Чат и список игроков",
+    "presentation": "ChatGlassMixin / TabGlassMixin",
+    "native": "native messages / links / players / scores"
+  },
+  {
+    "id": "44-death",
+    "reference": "Экран смерти",
+    "presentation": "DeathSkinMixin / GlassMenu",
+    "native": "native cause / score / respawn delay"
+  },
+  {
+    "id": "45-disconnect",
+    "reference": "Ошибка подключения",
+    "presentation": "GlassMenu / MenuMessageMixin",
+    "native": "native connection error"
+  },
+  {
+    "id": "46-loading",
+    "reference": "Подключение к серверу",
+    "presentation": "GlassMenu / MenuBackdropMixin",
+    "native": "native connection/loading state"
+  },
+  {
+    "id": "47-lan",
+    "reference": "Открытие для сети",
+    "presentation": "GlassMenu / MenuEditBoxMixin",
+    "native": "native LAN options"
+  },
+  {
+    "id": "48-delete",
+    "reference": "Подтверждение удаления",
+    "presentation": "GlassMenu / MenuMessageMixin",
+    "native": "native confirmation callback"
+  }
+]

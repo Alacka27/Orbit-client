@@ -20,11 +20,15 @@ import net.minecraft.resources.Identifier;
 import dev.alacka.orbit.mixin.CycleButtonAccessor;
 import dev.alacka.orbit.profiles.ProfilesScreen;
 
-/** Unified menu theme. HUD, chat and inventory/container rendering remain untouched. */
+/** Shared violet-glass presentation for menus and supported vanilla game screens. */
 public final class GlassMenu {
     public static final int WINDOW_FILL = 0x2e181026;
     public static final int WINDOW_BORDER = 0x5fa991c2;
     private static final Identifier CLOUDS = Identifier.fromNamespaceAndPath("orbit", "clouds.png");
+    private static final Identifier MEDIUM_SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/surface_medium");
+    private static final Identifier MEDIUM_BORDER = Identifier.fromNamespaceAndPath("orbit", "ui/border_medium");
+    private static final Identifier WINDOW_SHADE = Identifier.fromNamespaceAndPath("orbit", "ui/window_shade");
+    private static final Identifier WINDOW_SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/window");
     private static final Identifier SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/surface");
     private static final Identifier BORDER = Identifier.fromNamespaceAndPath("orbit", "ui/border");
     private static final Identifier SMALL_SURFACE = Identifier.fromNamespaceAndPath("orbit", "ui/surface_small");
@@ -38,10 +42,12 @@ public final class GlassMenu {
         Minecraft client = Minecraft.getInstance();
         return (OrbitMenu.isEnabled() || client.screen instanceof OrbitClickScreen || client.screen instanceof ThemeSettingsScreen) && client.screen != null
                 && !(client.screen instanceof ChatScreen)
-                && !(client.screen instanceof AbstractContainerScreen<?>);
+                && (!(client.screen instanceof AbstractContainerScreen<?>) || GameUiTheme.supported(client.screen));
     }
 
     public static boolean supports(AbstractButton button) {
+        if (GameUiTheme.active() || button instanceof ModuleCard || button instanceof ColorSwatch
+                || button instanceof dev.alacka.orbit.profiles.ProfileRowButton) return false;
         if (button instanceof ImageButton || button instanceof SpriteIconButton || button instanceof PlainTextButton) return false;
         if (button instanceof CycleButton<?> cycle) {
             return ((CycleButtonAccessor) cycle).orbit$displayState() != CycleButton.DisplayState.HIDE;
@@ -51,7 +57,8 @@ public final class GlassMenu {
 
     public static void backdrop(GuiGraphics g, int width, int height) {
         if (Minecraft.getInstance().level != null) {
-            g.fill(0, 0, width, height, 0x70100b1a);
+            if (Minecraft.getInstance().options.getMenuBackgroundBlurriness() >= 1) g.blurBeforeThisStratum();
+            g.fill(0, 0, width, height, 0x46100b1a);
             return;
         }
         double scale = Math.max(width / 1600.0, height / 900.0);
@@ -67,10 +74,19 @@ public final class GlassMenu {
     /** Antialiased nine-slice sprites keep their corner radius at every GUI scale. */
     public static void panel(GuiGraphics g, int x, int y, int width, int height, int radius, int fill, int border) {
         if (width <= 0 || height <= 0) return;
+        boolean window = fill == WINDOW_FILL;
         fill = UiTheme.tint(fill, true); border = UiTheme.tint(border, false);
-        boolean small = Math.min(width, height) < 20 || radius <= 5;
-        g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_SURFACE : SURFACE, x, y, width, height, fill);
-        g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_BORDER : BORDER, x, y, width, height, border);
+        if (window) fill = (fill & 0xff000000) | (UiTheme.tint(0xff48305c, false) & 0xffffff);
+        boolean small = Math.min(width, height) < 16 || radius <= 4;
+        boolean medium = !small && (radius <= 8 || Math.min(width, height) < 24);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, window ? WINDOW_SURFACE : small ? SMALL_SURFACE : medium ? MEDIUM_SURFACE : SURFACE, x, y, width, height, fill);
+        if (window) {
+            // The approved glass is clear at the top and denser at the bottom. A zero-opacity setting still stays transparent.
+            int shade = (fill & 0xff000000) | (UiTheme.tint(0xff100a18, false) & 0xffffff);
+            g.blitSprite(RenderPipelines.GUI_TEXTURED, WINDOW_SHADE, x, y, width, height, shade);
+            g.blitSprite(RenderPipelines.GUI_TEXTURED, WINDOW_SHADE, x, y, width, height, shade);
+        }
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, small ? SMALL_BORDER : medium ? MEDIUM_BORDER : BORDER, x, y, width, height, border);
     }
     public static void shadow(GuiGraphics g, int x, int y, int width, int height) {
         if (width > 0 && height > 0) g.blitSprite(RenderPipelines.GUI_TEXTURED, SHADOW, x - 6, y - 4, width + 12, height + 12, 0x40ffffff);
@@ -81,15 +97,34 @@ public final class GlassMenu {
     public static void text(GuiGraphics g, String label, int x, int y, int color) {
         g.drawString(Minecraft.getInstance().font, text(label), x, y, color, false);
     }
+    public static Component boldText(String label) {
+        var text = Component.literal(label);
+        if (Minecraft.getInstance().getResourceManager().getResource(Identifier.fromNamespaceAndPath("orbit", "font/ui_bold.json")).isPresent())
+            text.withStyle(s -> s.withFont(new net.minecraft.network.chat.FontDescription.Resource(Identifier.fromNamespaceAndPath("orbit", "ui_bold"))));
+        return text;
+    }
+    public static void heading(GuiGraphics g, String label, int x, int y, int color) {
+        g.drawString(Minecraft.getInstance().font, boldText(label), x, y, color, false);
+    }
     public static boolean selectionScreen() {
         var screen = Minecraft.getInstance().screen;
         return active() && (screen instanceof SelectWorldScreen || screen instanceof JoinMultiplayerScreen);
     }
     public static void screenPanel(GuiGraphics g, int width, int height) {
-        if (!active() || Minecraft.getInstance().screen instanceof TitleScreen
+        if (!active() || Minecraft.getInstance().screen instanceof AbstractContainerScreen<?>
+                || Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.advancements.AdvancementsScreen
+                || Minecraft.getInstance().screen instanceof TitleScreen
                 || Minecraft.getInstance().screen instanceof ProfilesScreen
                 || Minecraft.getInstance().screen instanceof OrbitClickScreen
                 || Minecraft.getInstance().screen instanceof ThemeSettingsScreen) return;
+        if (Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.PauseScreen pause) {
+            if (!pause.showsPauseMenu()) return;
+            int count = (int) pause.children().stream().filter(c -> c instanceof Button b && b.visible).count();
+            var p = PauseLayout.of(width, height, count);
+            shadow(g, p.x(), p.y(), p.width(), p.height());
+            panel(g, p.x(), p.y(), p.width(), p.height(), 12, WINDOW_FILL, WINDOW_BORDER);
+            return;
+        }
         int w = Math.min(width - 16, 552), x = (width - w) / 2;
         shadow(g, x, 7, w, height - 14);
         panel(g, x, 7, w, height - 14, 12, WINDOW_FILL, WINDOW_BORDER);
@@ -117,7 +152,14 @@ public final class GlassMenu {
         state.value += (target - state.value) * (dev.alacka.orbit.config.OrbitSettings.theme().animations() ? 1 - (float) Math.exp(-dt * 16) : 1);
         boolean title = Minecraft.getInstance().screen instanceof TitleScreen;
         String raw = button.getMessage().getString();
-        boolean accent = primary || (Minecraft.getInstance().screen instanceof ThemeSettingsScreen && raw.equals("Применить")) || (Minecraft.getInstance().screen instanceof OrbitClickScreen click && click.selectedButton(button)) || (Minecraft.getInstance().screen instanceof ProfilesScreen
+        boolean accent = primary || button.getMessage().equals(Component.translatable("menu.returnToGame"))
+                || button.getMessage().equals(Component.translatable("deathScreen.respawn"))
+                || button.getMessage().equals(Component.translatable("selectWorld.select"))
+                || button.getMessage().equals(Component.translatable("selectServer.select"))
+                || button.getMessage().equals(Component.translatable("lanServer.start"))
+                || (Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.worldselection.CreateWorldScreen
+                    && button.getMessage().equals(Component.translatable("selectWorld.create")))
+                || (Minecraft.getInstance().screen instanceof ThemeSettingsScreen && raw.equals("Применить")) || (Minecraft.getInstance().screen instanceof OrbitClickScreen click && click.selectedButton(button)) || (Minecraft.getInstance().screen instanceof ProfilesScreen
                 && (raw.equals("Select") || raw.equals("Back")))
                 || button.getMessage().equals(Component.translatable("gui.back"))
                 || button.getMessage().equals(Component.translatable("gui.done"));
@@ -132,11 +174,11 @@ public final class GlassMenu {
         var font = Minecraft.getInstance().font;
         String label = raw;
         int available = Math.max(0, button.getWidth() - 12);
-        if (font.width(text(label)) > available) {
-            while (!label.isEmpty() && font.width(text(label + "…")) > available) label = label.substring(0, label.length() - 1);
+        if (font.width(boldText(label)) > available) {
+            while (!label.isEmpty() && font.width(boldText(label + "…")) > available) label = label.substring(0, label.length() - 1);
             label += "…";
         }
-        Component content = text(label);
+        Component content = boldText(label);
         g.drawString(font, content, button.getX() + (button.getWidth() - font.width(content)) / 2,
                 button.getY() + (button.getHeight() - 9) / 2,
                 button.active ? 0xfff8f4ff : 0xff91859f, false);

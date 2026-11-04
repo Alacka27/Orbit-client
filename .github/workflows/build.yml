@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Test and build modules and personal interface
+    name: Test and build Violet Glass UI
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -42,12 +42,16 @@ jobs:
         run: bash scripts/test-modules.sh
       - name: Test responsive ClickGUI layout
         run: bash scripts/test-clickgui.sh
+      - name: Test container, profile and pause layouts
+        run: bash scripts/test-game-ui.sh
       - name: Test offline profile storage
         run: bash scripts/test-profiles.sh
       - name: Check supplied logo and menu layout
         run: python3 tools/test_menu_assets.py
       - name: Test glass panel geometry
-        run: python3 tools/test_glass.py
+        run: |
+          python3 tools/test_glass.py
+          python3 tools/test_ui_coverage.py
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -55,68 +59,13 @@ jobs:
           cache-read-only: true
       - name: Compile and remap mod
         run: gradle --no-daemon --stacktrace build
-      - name: Verify built mod metadata and mixins
-        shell: python
-        run: |
-          import json
-          import struct
-          import zipfile
-          from pathlib import Path
-          jar = Path('build/libs/orbit-0.4.5-modules.jar')
-          expected = ['MainProfileMixin', 'CameraMixin', 'MouseHandlerMixin', 'TitleScreenMixin', 'MenuButtonMixin', 'CycleButtonAccessor', 'MenuBackdropMixin', 'MenuListMixin', 'MenuEditBoxMixin', 'MenuFontMixin', 'MenuSliderMixin', 'MenuScrollMixin', 'MenuCheckboxMixin', 'MenuTabMixin', 'MenuSeparatorMixin', 'MenuMessageMixin', 'ClickMenuKeyMixin', 'WorldListTextMixin', 'ServerListTextMixin', 'NoFallMixin', 'JesusMixin']
-          with zipfile.ZipFile(jar) as archive:
-              info = json.loads(archive.read('fabric.mod.json'))
-              icon = archive.read(info['icon'])
-              assert icon[:8] == b'\x89PNG\r\n\x1a\n', 'Missing or invalid icon'
-              assert struct.unpack('>II', icon[16:24]) == (512, 512)
-              wallpaper = archive.read('assets/orbit/clouds.png')
-              assert wallpaper[:8] == b'\x89PNG\r\n\x1a\n'
-              assert struct.unpack('>II', wallpaper[16:24]) == (1600, 900)
-              assert 'assets/orbit/font/ui.ttf' in archive.namelist()
-              assert 'assets/orbit/font/license.txt' in archive.namelist()
-              font_info = json.loads(archive.read('assets/orbit/font/ui.json'))
-              namespace, font_file = font_info['providers'][0]['file'].split(':', 1)
-              assert 'assets/' + namespace + '/font/' + font_file in archive.namelist(), 'Broken Minecraft TTF resource path'
-              for sprite in ('surface', 'border', 'shadow', 'surface_small', 'border_small'):
-                  assert 'assets/orbit/textures/gui/sprites/ui/' + sprite + '.png' in archive.namelist()
-                  assert 'assets/orbit/textures/gui/sprites/ui/' + sprite + '.png.mcmeta' in archive.namelist()
-              assert info['id'] == 'orbit', info
-              assert info['version'] == '0.4.5-modules', info
-              assert info['depends']['minecraft'] == '1.21.11', info
-              assert any(item['config'] == 'orbit.client.mixins.json' for item in info['mixins'])
-              mixins = json.loads(archive.read('orbit.client.mixins.json'))
-              assert mixins['required'] is True
-              assert mixins['compatibilityLevel'] == 'JAVA_21'
-              assert sorted(mixins['client']) == sorted(expected)
-              required = ['dev/alacka/orbit/OrbitClient.class',
-                          'dev/alacka/orbit/freelook/FreeLookController.class',
-                          'dev/alacka/orbit/freelook/FreeLookState.class',
-                          'dev/alacka/orbit/menu/OrbitMenu.class',
-                          'dev/alacka/orbit/menu/GlassMenu.class',
-                          'dev/alacka/orbit/menu/OrbitClickScreen.class',
-                          'dev/alacka/orbit/menu/ClickMenuController.class',
-                          'dev/alacka/orbit/menu/ClickMenuLayout.class',
-                          'dev/alacka/orbit/menu/ThemeSettingsScreen.class',
-                          'dev/alacka/orbit/config/ClientSettings.class',
-                          'dev/alacka/orbit/modules/MovementModules.class',
-                          'dev/alacka/orbit/modules/Trajectories.class',
-                          'dev/alacka/orbit/profiles/ProfilesScreen.class',
-                          'dev/alacka/orbit/profiles/ProfileStore.class',
-                          'dev/alacka/orbit/profiles/ProfileLaunch.class']
-              required += ['dev/alacka/orbit/mixin/' + name + '.class' for name in expected]
-              for name in required:
-                  assert name in archive.namelist(), name
-              for name in archive.namelist():
-                  if name.startswith('dev/alacka/orbit/') and name.endswith('.class'):
-                      magic, minor, major = struct.unpack('>IHH', archive.read(name)[:8])
-                      assert magic == 0xCAFEBABE and major == 65, (name, major)
-          print('Menu/icon/FreeLook, Java 21 bytecode and Mixin metadata verified:', jar)
-          print('Actual Mixin application and camera behaviour still require an in-game test.')
-      - name: Upload cloud glass preview jar
+      - name: Verify built mod metadata, fonts and GUI resources
+        run: python3 tools/verify_jar.py
+      - name: Upload Violet Glass jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.4.5-modules
-          path: build/libs/orbit-0.4.5-modules.jar
+          name: orbit-1.21.11-0.4.6-violet-ui
+          path: build/libs/orbit-0.4.6-violet-ui.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result
@@ -126,4 +75,4 @@ jobs:
         run: |
           printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
           echo 'Build JVM: Java 25. Mod bytecode target: Java 21.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Cloud glass menu and FreeLook preview. Theme editor and other planned modules are not implemented. A successful build is not an in-game test.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Violet Glass menus, theme editor, profiles, vanilla containers and HUD. Native slot geometry and gameplay callbacks are retained. A successful CI build is not an in-game test; see docs/QA_0.4.6.md for the recorded local checks.' >> "$GITHUB_STEP_SUMMARY"
