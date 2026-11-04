@@ -3,7 +3,7 @@
   "id": "orbit",
   "version": "${version}",
   "name": "Orbit",
-  "description": "Cloud glass menus with the supplied Orbit logo and hold-to-look camera. Other planned modules are not implemented.",
+  "description": "Orbit client: Violet Glass menus, movable HUD, profiles/configs, FreeLook and opt-in combat modules. Live offline profiles, Ely.by sign-in and configurable Microsoft device-code sign-in. Item modules from stage 2.1 retained.",
   "icon": "assets/orbit/icon.png",
   "authors": [
     "Alacka27"

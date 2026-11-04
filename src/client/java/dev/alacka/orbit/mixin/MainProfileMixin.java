@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-/** Select profile before Minecraft initializes identity-dependent services. */
+/** Retain the real launcher identity before optional live offline selection. */
 @Mixin(Main.class)
 public abstract class MainProfileMixin {
     @ModifyArg(method = "main", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Minecraft;<init>(Lnet/minecraft/client/main/GameConfig;)V"), index = 0)
