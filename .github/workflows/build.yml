@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    name: Test and build Violet Glass UI
+    name: Test and build Orbit
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -36,19 +36,36 @@ jobs:
           java-version: '25'
       - name: Check official dependency metadata
         run: python3 .github/scripts/check_dependencies.py
+      - name: Restore pinned binary resources from audited text sources
+        run: |
+          python3 tools/restore_binary_resources.py
+          python3 tools/generate_icon.py
+          python3 tools/generate_wallpaper.py
       - name: Test FreeLook state and config
         run: bash scripts/test-freelook.sh
       - name: Test modules and per-profile interface preferences
         run: bash scripts/test-modules.sh
+      - name: Test combat settings, targeting, shared attack budget and layouts
+        run: bash scripts/test-combat.sh
+      - name: Test item settings, shared action budget, slot mapping and use ownership
+        run: bash scripts/test-support.sh
       - name: Test responsive ClickGUI layout
         run: bash scripts/test-clickgui.sh
+      - name: Test hotbar, offhand and chat spacing
+        run: bash scripts/test-hud-ui.sh
       - name: Test container, profile and pause layouts
         run: bash scripts/test-game-ui.sh
       - name: Test offline profile storage
         run: bash scripts/test-profiles.sh
+      - name: Test theme, chat and continuous module grid
+        run: bash scripts/test-themes.sh
+      - name: Test zoom, per-profile bindings and input gates
+        run: bash scripts/test-zoom-binds.sh
+      - name: Test stage 4 visuals and internal-only controls
+        run: bash scripts/test-visual-stage4.sh
       - name: Check supplied logo and menu layout
         run: python3 tools/test_menu_assets.py
-      - name: Test glass panel geometry
+      - name: Check retained UI resources, fonts and reference coverage
         run: |
           python3 tools/test_glass.py
           python3 tools/test_ui_coverage.py
@@ -59,13 +76,17 @@ jobs:
           cache-read-only: true
       - name: Compile and remap mod
         run: gradle --no-daemon --stacktrace build
+      - name: Test account protocols without real credentials
+        run: |
+          bash scripts/test-accounts.sh
+          bash scripts/test-account-skins.sh
       - name: Verify built mod metadata, fonts and GUI resources
         run: python3 tools/verify_jar.py
       - name: Upload Violet Glass jar
         uses: actions/upload-artifact@v4
         with:
-          name: orbit-1.21.11-0.4.6-violet-ui
-          path: build/libs/orbit-0.4.6-violet-ui.jar
+          name: orbit-1.21.11-0.4.14-visual-stage4
+          path: build/libs/orbit-0.4.14-visual-stage4.jar
           if-no-files-found: error
           retention-days: 14
       - name: Write build result
@@ -75,4 +96,4 @@ jobs:
         run: |
           printf '\n## Build result: %s\n\n' "$BUILD_STATUS" >> "$GITHUB_STEP_SUMMARY"
           echo 'Build JVM: Java 25. Mod bytecode target: Java 21.' >> "$GITHUB_STEP_SUMMARY"
-          echo 'Violet Glass menus, theme editor, profiles, vanilla containers and HUD. Native slot geometry and gameplay callbacks are retained. A successful CI build is not an in-game test; see docs/QA_0.4.6.md for the recorded local checks.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Stage 4 visuals, built-in FreeLook/Zoom and internal-only controls. A successful CI build is not an in-game test; see docs/QA_0.4.14_stage4.md for the recorded local checks.' >> "$GITHUB_STEP_SUMMARY"

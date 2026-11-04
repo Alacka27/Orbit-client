@@ -38,7 +38,7 @@ public record FreeLookConfig(boolean enabled, double returnSpeed) {
             defaults.setProperty("returnSpeed", "12.0");
             try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE)) {
-                defaults.store(writer, "Orbit FreeLook: returnSpeed 1..40, higher = faster. Keybind is saved in Minecraft controls.");
+                defaults.store(writer, "Orbit FreeLook: returnSpeed 1..40, higher = faster. Built-in hold binding is configured only inside Orbit. Legacy enabled is ignored at runtime.");
             }
             return DEFAULT;
         }
